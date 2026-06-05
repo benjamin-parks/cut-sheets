@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldCut — Trimble Access Cut Sheet Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="grain"></div>
+
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="24" height="24" rx="5" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="8" y1="9" x2="20" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="8" y1="14" x2="16" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="8" y1="19" x2="20" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="20" cy="14" r="3" fill="currentColor"/>
+      </svg>
+      <span class="logo-text">FieldCut</span>
+    </a>
+    <nav>
+      <a href="#how-it-works">How it works</a>
+      <a href="#tool" class="nav-cta">Open Tool</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Trimble Access · CSV Import · Print-Ready</div>
+    <h1>Cut sheets from your <em>survey data</em>, instantly.</h1>
+    <p class="hero-sub">Upload any Trimble Access CSV export and generate professional, print-ready cut sheets for every point — no software, no subscriptions, no nonsense.</p>
+    <div class="hero-actions">
+      <a href="#tool" class="btn-hero">Generate Cut Sheets <span class="arr">→</span></a>
+      <a href="#how-it-works" class="btn-ghost">See how it works</a>
+    </div>
+    <div class="hero-trust">
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        100% local — no uploads
+      </span>
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Auto-detects columns
+      </span>
+      <span class="trust-item">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l3.5 3.5L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        One sheet per point
+      </span>
+    </div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="sample-sheet">
+      <div class="ss-header">
+        <div class="ss-point">PT-1047</div>
+        <div class="ss-badge">CL</div>
+      </div>
+      <div class="ss-grid">
+        <div class="ss-cell"><span class="ss-lbl">Northing</span><span class="ss-val">4,821,304.2810</span></div>
+        <div class="ss-cell"><span class="ss-lbl">Easting</span><span class="ss-val">312,048.9340</span></div>
+        <div class="ss-cell"><span class="ss-lbl">Elevation</span><span class="ss-val">1,204.8820</span></div>
+        <div class="ss-cell"><span class="ss-lbl">Feature Code</span><span class="ss-val">CL</span></div>
+      </div>
+      <div class="ss-notes">Field Notes / Stakeout Notes</div>
+      <div class="ss-row3">
+        <div class="ss-sm">Cut / Fill</div>
+        <div class="ss-sm">Offset</div>
+        <div class="ss-sm">Initials</div>
+      </div>
+    </div>
+    <div class="sample-sheet sample-sheet--back" aria-hidden="true"></div>
+    <div class="sample-sheet sample-sheet--back2" aria-hidden="true"></div>
+  </div>
+</section>
+
+<section class="how" id="how-it-works">
+  <div class="how-inner">
+    <div class="section-label">Process</div>
+    <h2>Three steps, done.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Export from Trimble Access</h3>
+          <p>Export your job as a CSV from Trimble Access. Any standard format works — N/E/Z, E/N/Z, with or without feature codes.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Upload & configure</h3>
+          <p>Drop the file in, set your project name, surveyor, and units. FieldCut auto-detects columns and shows every point instantly.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Select & print</h3>
+          <p>Pick the points you need — all of them or just a few. Hit print and get one clean cut sheet per point, ready for field use.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tool-section" id="tool">
+  <div class="tool-inner">
+    <div class="tool-header">
+      <h2>Cut Sheet Generator</h2>
+      <p>Your files never leave your browser — all processing is local.</p>
+    </div>
+
+    <div id="upload-area">
+      <div id="drop-zone">
+        <input type="file" id="file-input" accept=".csv,.txt" aria-label="Upload Trimble Access CSV file">
+        <div class="dz-icon" aria-hidden="true">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect x="6" y="4" width="28" height="32" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M24 4v8h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="12" y1="20" x2="28" y2="20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="12" y1="25" x2="22" y2="25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="dz-label">Drop your Trimble Access CSV here</div>
+        <div class="dz-sub">or <span class="dz-browse">click to browse</span> · .csv or .txt</div>
+      </div>
+
+      <div class="format-hint">
+        <strong>Supported formats:</strong> Standard Trimble Access CSV exports. Columns auto-detected from headers — Point Name, Northing, Easting, Elevation, Feature Code, and observation data.
+      </div>
+    </div>
+
+    <div id="config-panel" class="hidden">
+      <div class="config-grid">
+        <div class="field-group">
+          <label for="project-name">Project / Job Name</label>
+          <input type="text" id="project-name" placeholder="e.g. River Crossing Survey 2025">
+        </div>
+        <div class="field-group">
+          <label for="surveyor-name">Surveyor</label>
+          <input type="text" id="surveyor-name" placeholder="e.g. J. Smith, PLS">
+        </div>
+        <div class="field-group">
+          <label for="unit-sel">Units</label>
+          <select id="unit-sel">
+            <option value="ft">US Survey Feet</option>
+            <option value="m">Meters</option>
+            <option value="intft">International Feet</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label for="coord-order">Coordinate Order</label>
+          <select id="coord-order">
+            <option value="nez">N, E, Z — Northing first</option>
+            <option value="enz">E, N, Z — Easting first</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="summary-bar" class="hidden">
+      <div class="sb-file">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="5" y1="9" x2="9" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span id="stat-file">file.csv</span>
+      </div>
+      <div class="sb-stats">
+        <span><strong id="stat-total">0</strong> points</span>
+        <span class="sb-div">·</span>
+        <span><strong id="stat-selected">0</strong> selected</span>
+      </div>
+      <div class="sb-actions">
+        <button class="btn-sm" onclick="selectAll()">Select all</button>
+        <button class="btn-sm" onclick="selectNone()">Clear</button>
+        <button class="btn-sm" onclick="resetApp()">↩ New file</button>
+      </div>
+    </div>
+
+    <div id="search-bar" class="hidden">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.2"/><line x1="10.5" y1="10.5" x2="13.5" y2="13.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <input type="text" id="search-input" placeholder="Filter by point name or feature code…" aria-label="Search points">
+      </div>
+      <button class="btn-print" id="print-btn" onclick="printSheets()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="6" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 6V3h6v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><line x1="5" y1="10" x2="8" y2="10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Print Cut Sheets
+      </button>
+    </div>
+
+    <div id="point-list" class="hidden"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <a href="#" class="footer-logo">FieldCut</a>
+    <span class="footer-sep">—</span>
+    <span>All processing happens locally in your browser. No data is uploaded or stored.</span>
+    <span class="footer-right">Built for field crews.</span>
+  </div>
+</footer>
+
+<div id="print-area" aria-hidden="true"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
