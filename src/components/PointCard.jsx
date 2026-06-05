@@ -84,8 +84,14 @@ export default function PointCard({ point: pt, selected, onToggle }) {
             )}
             <DetailCell label="Feature Code"     val={pt.code}        />
             {obsFields.map(f => <DetailCell key={f.key} label={f.label} val={pt[f.key]} />)}
+            {hasDesign && pt.field_point_name && (
+              <DetailCell label="Field Point" val={pt.field_point_name} />
+            )}
             {hasDesign && pt.match_dist !== null && (
               <DetailCell label="Match Dist" val={`${pt.match_dist.toFixed(3)} ft`} />
+            )}
+            {hasDesign && pt.match_method && (
+              <DetailCell label="Matched By" val={pt.match_method} />
             )}
           </div>
         </div>

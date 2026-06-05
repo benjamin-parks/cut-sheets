@@ -50,6 +50,7 @@ export function printSheets(pts, { projectName, surveyor, units }) {
             ? `<div class="cs-cell cs-cell--design"><div class="cck">Design Elev</div><div class="ccv">${fmtPrint(pt.design_elev)}</div></div>`
             : `<div class="cs-cell"><div class="cck">Elevation</div><div class="ccv">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</div></div>`
           }
+          ${pt.field_point_name ? `<div class="cs-cell"><div class="cck">Field Point</div><div class="ccv" style="font-size:13px">${esc(pt.field_point_name)}</div></div>` : ''}
           <div class="cs-cell"><div class="cck">Feature Code</div><div class="ccv" style="font-size:13px">${esc(pt.code || '—')}</div></div>
           ${obsCells}
         </div>

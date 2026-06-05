@@ -6,39 +6,55 @@ function dist2d(n1, e1, n2, e2) {
   return Math.sqrt(dn * dn + de * de);
 }
 
-// For each design point, find the nearest survey point within tolerance.
-// Returns an array of merged points in design-point order, each with:
-//   ...surveyPoint fields, design_elev, cut_fill (signed ft), match_dist, unmatched (bool)
+// For each design point, find the best matching survey point using this priority:
+//   1. Field points whose description exactly matches the design point name
+//      (e.g. field desc "10000" → design point "10000")
+//      If multiple description matches, pick the closest by N/E.
+//   2. Fallback: nearest field point by N/E within TOLERANCE_FT,
+//      excluding field points that share the same name as the design point
+//      (avoids matching a design point to its own coincident survey shot).
 export function matchPoints(surveyPoints, designPoints) {
   return designPoints.map(dp => {
-    const dpN = parseFloat(dp.northing);
-    const dpE = parseFloat(dp.easting);
-    if (isNaN(dpN) || isNaN(dpE)) {
-      return { ...dp, design_elev: dp.elevation, cut_fill: null, match_dist: null, unmatched: true };
-    }
+    const dpName = (dp.name || '').trim();
+
+    // Priority 1 — description-to-name match
+    const descMatches = surveyPoints.filter(sp =>
+      (sp.code || '').trim() === dpName
+    );
 
     let best = null;
     let bestDist = Infinity;
-    for (const sp of surveyPoints) {
-      const d = dist2d(dpN, dpE, sp.northing, sp.easting);
-      if (d < bestDist) { bestDist = d; best = sp; }
+
+    if (descMatches.length > 0) {
+      for (const sp of descMatches) {
+        const d = dist2d(dp.northing, dp.easting, sp.northing, sp.easting);
+        if (d < bestDist) { bestDist = d; best = sp; }
+      }
     }
 
-    const unmatched = best === null || bestDist > TOLERANCE_FT;
+    // Priority 2 — proximity fallback (skip same-named field point)
+    if (!best) {
+      for (const sp of surveyPoints) {
+        if ((sp.name || '').trim() === dpName) continue; // skip coincident shot
+        const d = dist2d(dp.northing, dp.easting, sp.northing, sp.easting);
+        if (d < bestDist && d <= TOLERANCE_FT) { bestDist = d; best = sp; }
+      }
+    }
 
-    const designElev  = parseFloat(dp.elevation);
-    const surveyElev  = best ? parseFloat(best.elevation) : NaN;
-    // cut_fill: positive = cut (digging), negative = fill (building up)
-    const cutFill = (!unmatched && !isNaN(designElev) && !isNaN(surveyElev))
+    const unmatched = best === null;
+
+    const designElev = parseFloat(dp.elevation);
+    const surveyElev = best ? parseFloat(best.elevation) : NaN;
+    // positive = cut (digging down), negative = fill (building up)
+    const cutFill = (!unmatched && !isNaN(designElev) && !isNaN(surveyElev) && designElev !== 0)
       ? surveyElev - designElev
       : null;
 
     return {
-      // prefer survey N/E/code; use design elevation as the design target
-      name:       dp.name || (best?.name ?? ''),
+      name:       dpName,
       northing:   best?.northing ?? dp.northing,
       easting:    best?.easting  ?? dp.easting,
-      elevation:  best?.elevation ?? '',      // surveyed (existing) elev
+      elevation:  best?.elevation ?? '',
       code:       best?.code || dp.code || '',
       hz_angle:   best?.hz_angle   ?? '',
       vert_angle: best?.vert_angle ?? '',
@@ -47,9 +63,11 @@ export function matchPoints(surveyPoints, designPoints) {
       delta_elev: best?.delta_elev ?? '',
       ppm:        best?.ppm    ?? '',
       method:     best?.method ?? '',
-      design_elev: isNaN(designElev) ? '' : String(dp.elevation),
-      cut_fill:    cutFill,
-      match_dist:  best ? bestDist : null,
+      field_point_name: best?.name ?? '',
+      design_elev:  isNaN(designElev) || designElev === 0 ? '' : dp.elevation,
+      cut_fill:     cutFill,
+      match_dist:   best ? bestDist : null,
+      match_method: descMatches.length > 0 && best ? 'description' : 'proximity',
       unmatched,
     };
   });
