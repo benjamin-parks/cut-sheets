@@ -2,9 +2,9 @@ function splitLine(line) {
   const result = [];
   let cur = '', inQ = false;
   for (const c of line) {
-    if (c === '"')            { inQ = !inQ; }
+    if (c === '"')             { inQ = !inQ; }
     else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
-    else                      { cur += c; }
+    else                       { cur += c; }
   }
   result.push(cur);
   return result.map(s => s.replace(/^"|"$/g, '').trim());
@@ -39,26 +39,40 @@ function mapHeaders(headers) {
   return colMap;
 }
 
+// Detect headerless PNEZD: cols 1 & 2 of the first row are large floats (coordinates).
+function isHeaderless(firstRow) {
+  if (firstRow.length < 3) return false;
+  const n = parseFloat(firstRow[1]);
+  const e = parseFloat(firstRow[2]);
+  return !isNaN(n) && !isNaN(e) && Math.abs(n) > 1000 && Math.abs(e) > 1000;
+}
+
 export function parseCSV(text, coordOrder = 'nez') {
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length < 2) { alert('File appears empty or has no data rows.'); return null; }
+  if (lines.length < 1) { alert('File appears empty.'); return null; }
 
-  const headers = splitLine(lines[0]);
-  const colMap  = mapHeaders(headers);
+  const firstRow = splitLine(lines[0]);
 
-  if (colMap.name === undefined && headers.length >= 3) {
-    colMap.name      ??= 0;
-    colMap.northing  ??= 1;
-    colMap.easting   ??= 2;
-    colMap.elevation ??= 3;
-    colMap.code      ??= 4;
+  // Headerless file: start data from row 0, use positional mapping.
+  const headerless = isHeaderless(firstRow);
+  const dataStart  = headerless ? 0 : 1;
+
+  let colMap;
+  if (headerless) {
+    colMap = { name: 0, northing: 1, easting: 2, elevation: 3, code: 4 };
+  } else {
+    colMap = mapHeaders(firstRow);
+    // Fallback to positional if no headers matched
+    if (colMap.name === undefined && firstRow.length >= 3) {
+      colMap = { name: 0, northing: 1, easting: 2, elevation: 3, code: 4 };
+    }
   }
 
   const get = (parts, key) =>
     colMap[key] === undefined ? '' : (parts[colMap[key]] || '');
 
   const points = [];
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = dataStart; i < lines.length; i++) {
     const parts = splitLine(lines[i]);
     if (parts.length < 2) continue;
 
