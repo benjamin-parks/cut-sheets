@@ -56,10 +56,11 @@ export function matchPoints(surveyPoints, designPoints) {
       }
     }
 
-    // Priority 3 — proximity fallback (skip same-named field point)
+    // Priority 3 — proximity fallback (skip same-named and cck### check shots)
     if (!best) {
       for (const sp of surveyPoints) {
         if ((sp.name || '').trim() === dpName) continue;
+        if (/^cck/i.test((sp.code || '').trim())) continue;
         const d = dist2d(dp.northing, dp.easting, sp.northing, sp.easting);
         if (d < bestDist && d <= TOLERANCE_FT) { bestDist = d; best = sp; }
       }
