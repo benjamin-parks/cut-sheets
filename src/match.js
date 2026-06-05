@@ -1,4 +1,4 @@
-const TOLERANCE_FT = 1.0;
+const TOLERANCE_FT = 50.0;
 
 function dist2d(n1, e1, n2, e2) {
   const dn = parseFloat(n1) - parseFloat(n2);

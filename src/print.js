@@ -23,7 +23,7 @@ export function printSheets(pts, { projectName, surveyor, units }) {
       .join('');
 
     const unmatchedBanner = pt.unmatched
-      ? `<div class="cs-unmatched-banner">⚠ No survey match within 1 ft — verify before use</div>`
+      ? `<div class="cs-unmatched-banner">⚠ No survey match within 50 ft — verify before use</div>`
       : '';
 
     return `
