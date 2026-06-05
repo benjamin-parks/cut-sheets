@@ -10,8 +10,12 @@ function dist2d(n1, e1, n2, e2) {
 // design point within TOLERANCE_FT and compute cut/fill.
 // Multiple field points can match the same design point.
 export function matchPoints(surveyPoints, designPoints) {
+  const designNames = new Set(designPoints.map(dp => (dp.name || '').trim()));
+
   return surveyPoints
     .filter(sp => !/^cck/i.test((sp.code || '').trim()))
+    .filter(sp => !designNames.has((sp.name || '').trim()))
+    .filter(sp => isNaN(sp.name) || parseFloat(sp.name) > 999)
     .map(sp => {
       let best     = null;
       let bestDist = Infinity;
