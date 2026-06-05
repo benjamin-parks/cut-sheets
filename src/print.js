@@ -1,79 +1,76 @@
-import { esc, fmtPrint } from './utils.js';
+import { esc, fmtPrint, fmtCoord } from './utils.js';
 
 export function printSheets(pts, { projectName, surveyor, units }) {
-  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const date = new Date().toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  });
 
-  const obsKeys = ['hz_angle','vert_angle','slope_dist','horiz_dist','delta_elev','ppm','method'];
-  const obsLabels = {
-    hz_angle: 'Hz Angle', vert_angle: 'Vert Angle', slope_dist: 'Slope Dist',
-    horiz_dist: 'Horiz Dist', delta_elev: 'Delta Elev', ppm: 'PPM', method: 'Method',
-  };
+  const hasDesign = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
 
-  const sheetsHTML = pts.map((pt, idx) => {
-    const hasDesign = pt.design_elev !== undefined && pt.design_elev !== '';
-    const hasCutFill = pt.cut_fill !== null && pt.cut_fill !== undefined;
-    const isCut  = hasCutFill && pt.cut_fill >= 0;
-    const cutFillLabel = hasCutFill
-      ? `${isCut ? 'CUT' : 'FILL'} ${Math.abs(pt.cut_fill).toFixed(3)} ft`
+  const rows = pts.map((pt, idx) => {
+    const isCut    = pt.cut_fill !== null && pt.cut_fill >= 0;
+    const isFill   = pt.cut_fill !== null && pt.cut_fill < 0;
+    const cfLabel  = pt.cut_fill !== null
+      ? `${isCut ? 'C' : 'F'} ${Math.abs(pt.cut_fill).toFixed(3)}`
       : '';
-
-    const obsCells = obsKeys
-      .filter(k => pt[k])
-      .map(k => `<div class="cs-cell"><div class="cck">${obsLabels[k]}</div><div class="ccv" style="font-size:13px">${esc(pt[k])}</div></div>`)
-      .join('');
-
-    const unmatchedBanner = pt.unmatched
-      ? `<div class="cs-unmatched-banner">⚠ No survey match within 50 ft — verify before use</div>`
-      : '';
+    const rowClass = pt.unmatched ? 'row-warn' : idx % 2 === 0 ? '' : 'row-alt';
 
     return `
-      <div class="cut-sheet${pt.unmatched ? ' cut-sheet--warn' : ''}">
-        ${unmatchedBanner}
-        <div class="cs-top">
-          <div>
-            <div class="cs-pt-name">${esc(pt.name)} <span class="cs-badge">${esc(pt.code || 'NO CODE')}</span></div>
-            <div class="cs-project-name">${esc(projectName)}</div>
-          </div>
-          <div class="cs-meta">
-            ${surveyor ? `<div>${esc(surveyor)}</div>` : ''}
-            <div>${date}</div>
-            <div>${esc(units)}</div>
-            <div>Sheet ${idx + 1} of ${pts.length}</div>
-          </div>
-        </div>
-
-        <div class="cs-grid">
-          <div class="cs-cell"><div class="cck">Northing</div><div class="ccv">${fmtPrint(pt.northing)}</div></div>
-          <div class="cs-cell"><div class="cck">Easting</div><div class="ccv">${fmtPrint(pt.easting)}</div></div>
-          <div class="cs-cell"><div class="cck">Surveyed Elev</div><div class="ccv">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</div></div>
-          ${hasDesign
-            ? `<div class="cs-cell cs-cell--design"><div class="cck">Design Elev</div><div class="ccv">${fmtPrint(pt.design_elev)}</div></div>`
-            : `<div class="cs-cell"><div class="cck">Elevation</div><div class="ccv">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</div></div>`
-          }
-          ${pt.field_point_name ? `<div class="cs-cell"><div class="cck">Field Point</div><div class="ccv" style="font-size:13px">${esc(pt.field_point_name)}</div></div>` : ''}
-          <div class="cs-cell"><div class="cck">Feature Code</div><div class="ccv" style="font-size:13px">${esc(pt.code || '—')}</div></div>
-          ${obsCells}
-        </div>
-
-        <hr class="cs-divider">
-
-        <div class="cs-notes-box"><div class="cs-notes-label">Field Notes / Stakeout Notes</div></div>
-
-        <div class="cs-bottom-row">
-          <div class="cs-sm-box${hasCutFill ? ' cs-sm-box--filled' : ''}">
-            <div class="cs-notes-label">Cut / Fill</div>
-            ${hasCutFill ? `<div class="cs-cutfill-val${isCut ? ' cut' : ' fill'}">${cutFillLabel}</div>` : ''}
-          </div>
-          <div class="cs-sm-box"><div class="cs-notes-label">Offset</div></div>
-          <div class="cs-sm-box"><div class="cs-notes-label">Initials / Date</div></div>
-        </div>
-
-        <div class="cs-footer">
-          <span>FieldCut · Trimble Access CSV Export</span>
-          <span>Point ${esc(pt.name)} · ${esc(projectName)}</span>
-        </div>
-      </div>`;
+      <tr class="${rowClass}">
+        <td class="tc-pt">${esc(pt.name)}</td>
+        <td class="tc-num">${fmtPrint(pt.northing)}</td>
+        <td class="tc-num">${fmtPrint(pt.easting)}</td>
+        <td class="tc-num">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</td>
+        ${hasDesign ? `<td class="tc-num tc-design">${pt.design_elev ? fmtPrint(pt.design_elev) : '—'}</td>` : ''}
+        ${hasDesign ? `<td class="tc-cf ${isCut ? 'tc-cut' : isFill ? 'tc-fill' : ''}">${cfLabel || (pt.unmatched ? '⚠ no match' : '—')}</td>` : ''}
+        <td class="tc-code">${esc(pt.code || '')}</td>
+        ${hasDesign && pts.some(p => p.field_point_name) ? `<td class="tc-fp">${esc(pt.field_point_name || '')}</td>` : ''}
+        <td class="tc-notes"></td>
+        <td class="tc-init"></td>
+      </tr>`;
   }).join('');
+
+  const fpCol = hasDesign && pts.some(p => p.field_point_name)
+    ? '<th>Field Pt</th>' : '';
+
+  const html = `
+    <div class="pt-table-wrap">
+      <div class="pt-table-header">
+        <div class="pt-table-title">
+          <div class="pt-project">${esc(projectName)}</div>
+          <div class="pt-sub">Cut Sheet Summary</div>
+        </div>
+        <div class="pt-table-meta">
+          ${surveyor ? `<div>${esc(surveyor)}</div>` : ''}
+          <div>${date}</div>
+          <div>${esc(units)}</div>
+          <div>${pts.length} points</div>
+        </div>
+      </div>
+
+      <table class="pt-table">
+        <thead>
+          <tr>
+            <th>Point</th>
+            <th>Northing</th>
+            <th>Easting</th>
+            <th>Surv. Elev</th>
+            ${hasDesign ? '<th class="th-design">Design Elev</th>' : ''}
+            ${hasDesign ? '<th class="th-cf">Cut / Fill</th>' : ''}
+            <th>Code</th>
+            ${fpCol}
+            <th class="th-notes">Field Notes</th>
+            <th class="th-init">Init.</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+
+      <div class="pt-table-footer">
+        <span>FieldCut · ${esc(projectName)}</span>
+        <span>${date}</span>
+      </div>
+    </div>`;
 
   let printArea = document.getElementById('print-area');
   if (!printArea) {
@@ -81,6 +78,6 @@ export function printSheets(pts, { projectName, surveyor, units }) {
     printArea.id = 'print-area';
     document.body.appendChild(printArea);
   }
-  printArea.innerHTML = sheetsHTML;
+  printArea.innerHTML = html;
   window.print();
 }
