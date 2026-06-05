@@ -3,34 +3,85 @@ import { parseCSV } from '../csv.js';
 import { printSheets } from '../print.js';
 import PointCard from './PointCard.jsx';
 
+function DropZone({ label, fileName, onFile, hint }) {
+  const [over, setOver] = useState(false);
+  const ref = useRef(null);
+
+  function handleFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => onFile(e.target.result, file.name);
+    reader.readAsText(file);
+  }
+
+  return (
+    <div className="dz-wrap">
+      <div
+        className={`drop-zone${over ? ' over' : ''}${fileName ? ' loaded' : ''}`}
+        onDragOver={e => { e.preventDefault(); setOver(true); }}
+        onDragLeave={() => setOver(false)}
+        onDrop={e => { e.preventDefault(); setOver(false); handleFile(e.dataTransfer.files[0]); }}
+        onClick={() => ref.current?.click()}
+      >
+        <input
+          ref={ref}
+          type="file"
+          accept=".csv,.txt"
+          style={{ display: 'none' }}
+          onChange={e => handleFile(e.target.files[0])}
+        />
+        {fileName ? (
+          <>
+            <div className="dz-loaded-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <circle cx="14" cy="14" r="12" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M8 14l4 4 8-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="dz-loaded-name">{fileName}</div>
+            <div className="dz-replace">Click to replace</div>
+          </>
+        ) : (
+          <>
+            <div className="dz-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+                <rect x="6" y="4" width="28" height="32" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M24 4v8h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="12" y1="20" x2="28" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="12" y1="25" x2="22" y2="25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div className="dz-label">{label}</div>
+            <div className="dz-sub">or <span className="dz-browse">click to browse</span> · .csv or .txt</div>
+          </>
+        )}
+      </div>
+      {hint && <div className="dz-hint">{hint}</div>}
+    </div>
+  );
+}
+
 export default function Tool({
-  points, selected, fileName,
-  onPointsLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
+  points, selected, surveyFile, designFile, hasDesign,
+  onSurveyLoaded, onDesignLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
 }) {
-  const [over, setOver]           = useState(false);
   const [filter, setFilter]       = useState('');
   const [projectName, setProject] = useState('');
   const [surveyor, setSurveyor]   = useState('');
   const [units, setUnits]         = useState('ft');
   const [coordOrder, setCoord]    = useState('nez');
-  const fileRef = useRef(null);
 
   const hasPoints = points.length > 0;
+  const unmatchedCount = points.filter(p => p.unmatched).length;
 
-  function handleFile(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const pts = parseCSV(e.target.result, coordOrder);
-      if (pts) onPointsLoaded(pts, file.name);
-    };
-    reader.readAsText(file);
+  function handleSurveyFile(text, name) {
+    const pts = parseCSV(text, coordOrder);
+    if (pts) onSurveyLoaded(pts, name);
   }
 
-  function handleDrop(e) {
-    e.preventDefault();
-    setOver(false);
-    handleFile(e.dataTransfer.files[0]);
+  function handleDesignFile(text, name) {
+    const pts = parseCSV(text, coordOrder);
+    if (pts) onDesignLoaded(pts, name);
   }
 
   function handlePrint() {
@@ -42,7 +93,6 @@ export default function Tool({
 
   function handleReset() {
     setFilter('');
-    if (fileRef.current) fileRef.current.value = '';
     onReset();
   }
 
@@ -58,42 +108,33 @@ export default function Tool({
           <p>Your files never leave your browser — all processing is local.</p>
         </div>
 
-        {/* Upload area — fades out once file loaded */}
-        <div id="upload-area" style={hasPoints ? { opacity: 0.4, pointerEvents: 'none' } : {}}>
-          <div
-            id="drop-zone"
-            className={over ? 'over' : ''}
-            onDragOver={e => { e.preventDefault(); setOver(true); }}
-            onDragLeave={() => setOver(false)}
-            onDrop={handleDrop}
-            onClick={() => fileRef.current?.click()}
-          >
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,.txt"
-              style={{ display: 'none' }}
-              onChange={e => handleFile(e.target.files[0])}
-              aria-label="Upload Trimble Access CSV file"
-            />
-            <div className="dz-icon" aria-hidden="true">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                <rect x="6" y="4" width="28" height="32" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M24 4v8h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <line x1="12" y1="20" x2="28" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="12" y1="25" x2="22" y2="25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <div className="dz-label">Drop your Trimble Access CSV here</div>
-            <div className="dz-sub">or <span className="dz-browse">click to browse</span> · .csv or .txt</div>
-          </div>
-
-          <div className="format-hint">
-            <strong>Supported formats:</strong> Standard Trimble Access CSV exports. Columns
-            auto-detected from headers — Point Name, Northing, Easting, Elevation, Feature Code,
-            and observation data.
-          </div>
+        {/* Two drop zones */}
+        <div className={`upload-grid${surveyFile ? ' has-survey' : ''}`}>
+          <DropZone
+            label="Drop survey CSV (PNEZD)"
+            fileName={surveyFile}
+            onFile={handleSurveyFile}
+            hint="Trimble Access export — Point, Northing, Easting, Elevation, Description"
+          />
+          <DropZone
+            label="Drop design CSV (optional)"
+            fileName={designFile}
+            onFile={handleDesignFile}
+            hint="Design elevations — matched by nearest N/E coordinate within 1 ft"
+          />
         </div>
+
+        {/* Unmatched warning */}
+        {hasDesign && unmatchedCount > 0 && (
+          <div className="match-warning">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2L14.9 14H1.1L8 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+              <line x1="8" y1="7" x2="8" y2="10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              <circle cx="8" cy="12" r="0.6" fill="currentColor"/>
+            </svg>
+            <strong>{unmatchedCount} design point{unmatchedCount > 1 ? 's' : ''}</strong> had no survey match within 1 ft — shown with a warning flag.
+          </div>
+        )}
 
         {/* Config panel */}
         {hasPoints && (
@@ -143,7 +184,8 @@ export default function Tool({
                 <line x1="5" y1="6" x2="11" y2="6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
                 <line x1="5" y1="9" x2="9" y2="9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
-              <span>{fileName}</span>
+              <span>{surveyFile}</span>
+              {designFile && <><span className="sb-div">+</span><span>{designFile}</span></>}
             </div>
             <div className="sb-stats">
               <span><strong>{points.length}</strong> points</span>

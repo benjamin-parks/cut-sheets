@@ -10,13 +10,25 @@ export function printSheets(pts, { projectName, surveyor, units }) {
   };
 
   const sheetsHTML = pts.map((pt, idx) => {
+    const hasDesign = pt.design_elev !== undefined && pt.design_elev !== '';
+    const hasCutFill = pt.cut_fill !== null && pt.cut_fill !== undefined;
+    const isCut  = hasCutFill && pt.cut_fill >= 0;
+    const cutFillLabel = hasCutFill
+      ? `${isCut ? 'CUT' : 'FILL'} ${Math.abs(pt.cut_fill).toFixed(3)} ft`
+      : '';
+
     const obsCells = obsKeys
       .filter(k => pt[k])
       .map(k => `<div class="cs-cell"><div class="cck">${obsLabels[k]}</div><div class="ccv" style="font-size:13px">${esc(pt[k])}</div></div>`)
       .join('');
 
+    const unmatchedBanner = pt.unmatched
+      ? `<div class="cs-unmatched-banner">⚠ No survey match within 1 ft — verify before use</div>`
+      : '';
+
     return `
-      <div class="cut-sheet">
+      <div class="cut-sheet${pt.unmatched ? ' cut-sheet--warn' : ''}">
+        ${unmatchedBanner}
         <div class="cs-top">
           <div>
             <div class="cs-pt-name">${esc(pt.name)} <span class="cs-badge">${esc(pt.code || 'NO CODE')}</span></div>
@@ -29,20 +41,32 @@ export function printSheets(pts, { projectName, surveyor, units }) {
             <div>Sheet ${idx + 1} of ${pts.length}</div>
           </div>
         </div>
+
         <div class="cs-grid">
           <div class="cs-cell"><div class="cck">Northing</div><div class="ccv">${fmtPrint(pt.northing)}</div></div>
           <div class="cs-cell"><div class="cck">Easting</div><div class="ccv">${fmtPrint(pt.easting)}</div></div>
-          <div class="cs-cell"><div class="cck">Elevation</div><div class="ccv">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</div></div>
+          <div class="cs-cell"><div class="cck">Surveyed Elev</div><div class="ccv">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</div></div>
+          ${hasDesign
+            ? `<div class="cs-cell cs-cell--design"><div class="cck">Design Elev</div><div class="ccv">${fmtPrint(pt.design_elev)}</div></div>`
+            : `<div class="cs-cell"><div class="cck">Elevation</div><div class="ccv">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</div></div>`
+          }
           <div class="cs-cell"><div class="cck">Feature Code</div><div class="ccv" style="font-size:13px">${esc(pt.code || '—')}</div></div>
           ${obsCells}
         </div>
+
         <hr class="cs-divider">
+
         <div class="cs-notes-box"><div class="cs-notes-label">Field Notes / Stakeout Notes</div></div>
+
         <div class="cs-bottom-row">
-          <div class="cs-sm-box"><div class="cs-notes-label">Cut / Fill</div></div>
+          <div class="cs-sm-box${hasCutFill ? ' cs-sm-box--filled' : ''}">
+            <div class="cs-notes-label">Cut / Fill</div>
+            ${hasCutFill ? `<div class="cs-cutfill-val${isCut ? ' cut' : ' fill'}">${cutFillLabel}</div>` : ''}
+          </div>
           <div class="cs-sm-box"><div class="cs-notes-label">Offset</div></div>
           <div class="cs-sm-box"><div class="cs-notes-label">Initials / Date</div></div>
         </div>
+
         <div class="cs-footer">
           <span>FieldCut · Trimble Access CSV Export</span>
           <span>Point ${esc(pt.name)} · ${esc(projectName)}</span>

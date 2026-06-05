@@ -4,22 +4,39 @@ import Hero from './components/Hero.jsx';
 import HowItWorks from './components/HowItWorks.jsx';
 import Tool from './components/Tool.jsx';
 import Footer from './components/Footer.jsx';
+import { matchPoints } from './match.js';
 
 export default function App() {
-  const [points, setPoints] = useState([]);
-  const [selected, setSelected] = useState(new Set());
-  const [fileName, setFileName] = useState('');
+  const [surveyPoints, setSurveyPoints]   = useState([]);
+  const [designPoints, setDesignPoints]   = useState([]);
+  const [mergedPoints, setMergedPoints]   = useState([]);
+  const [surveyFile, setSurveyFile]       = useState('');
+  const [designFile, setDesignFile]       = useState('');
+  const [selected, setSelected]           = useState(new Set());
 
-  function handlePointsLoaded(pts, name) {
-    setPoints(pts);
-    setSelected(new Set(pts.map((_, i) => i)));
-    setFileName(name);
+  function handleSurveyLoaded(pts, name) {
+    setSurveyPoints(pts);
+    setSurveyFile(name);
+    const merged = designPoints.length > 0 ? matchPoints(pts, designPoints) : pts;
+    setMergedPoints(merged);
+    setSelected(new Set(merged.map((_, i) => i)));
+  }
+
+  function handleDesignLoaded(pts, name) {
+    setDesignPoints(pts);
+    setDesignFile(name);
+    const merged = surveyPoints.length > 0 ? matchPoints(surveyPoints, pts) : pts;
+    setMergedPoints(merged);
+    setSelected(new Set(merged.map((_, i) => i)));
   }
 
   function handleReset() {
-    setPoints([]);
+    setSurveyPoints([]);
+    setDesignPoints([]);
+    setMergedPoints([]);
+    setSurveyFile('');
+    setDesignFile('');
     setSelected(new Set());
-    setFileName('');
   }
 
   function toggleSelect(i) {
@@ -30,8 +47,13 @@ export default function App() {
     });
   }
 
-  function selectAll()  { setSelected(new Set(points.map((_, i) => i))); }
+  function selectAll()  { setSelected(new Set(mergedPoints.map((_, i) => i))); }
   function selectNone() { setSelected(new Set()); }
+
+  // Display points: merged if both loaded, else whichever is loaded
+  const displayPoints = mergedPoints.length > 0 ? mergedPoints
+    : surveyPoints.length > 0 ? surveyPoints
+    : [];
 
   return (
     <>
@@ -40,10 +62,13 @@ export default function App() {
       <Hero />
       <HowItWorks />
       <Tool
-        points={points}
+        points={displayPoints}
         selected={selected}
-        fileName={fileName}
-        onPointsLoaded={handlePointsLoaded}
+        surveyFile={surveyFile}
+        designFile={designFile}
+        hasDesign={designPoints.length > 0}
+        onSurveyLoaded={handleSurveyLoaded}
+        onDesignLoaded={handleDesignLoaded}
         onReset={handleReset}
         onToggleSelect={toggleSelect}
         onSelectAll={selectAll}

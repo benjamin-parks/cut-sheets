@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { esc, fmtCoord } from '../utils.js';
+import { fmtCoord, fmtCutFill } from '../utils.js';
 
-function DetailCell({ label, val }) {
-  const empty = !val || val === '';
+function DetailCell({ label, val, highlight }) {
+  const empty = val === null || val === undefined || val === '';
   return (
-    <div className="dc">
+    <div className={`dc${highlight ? ' dc--highlight' : ''}`}>
       <span className="dk">{label}</span>
       <span className={`dv${empty ? ' na' : ''}`}>{empty ? 'n/a' : val}</span>
     </div>
@@ -13,6 +13,8 @@ function DetailCell({ label, val }) {
 
 export default function PointCard({ point: pt, selected, onToggle }) {
   const [open, setOpen] = useState(false);
+
+  const hasDesign = pt.design_elev !== undefined;
 
   const obsFields = [
     { key: 'hz_angle',   label: 'Hz Angle'  },
@@ -25,7 +27,7 @@ export default function PointCard({ point: pt, selected, onToggle }) {
   ].filter(f => pt[f.key]);
 
   return (
-    <div className={`point-card${selected ? ' sel' : ''}`}>
+    <div className={`point-card${selected ? ' sel' : ''}${pt.unmatched ? ' unmatched' : ''}`}>
       <div className="pt-header" onClick={() => setOpen(o => !o)}>
         <input
           type="checkbox"
@@ -39,6 +41,24 @@ export default function PointCard({ point: pt, selected, onToggle }) {
         <span className="pt-code">
           {pt.code || <span style={{ color: 'var(--ink-faint)' }}>—</span>}
         </span>
+
+        {hasDesign && !pt.unmatched && pt.cut_fill !== null && (
+          <span className={`pt-cutfill ${pt.cut_fill >= 0 ? 'cut' : 'fill'}`}>
+            {pt.cut_fill >= 0 ? 'C' : 'F'} {Math.abs(pt.cut_fill).toFixed(3)}′
+          </span>
+        )}
+
+        {pt.unmatched && (
+          <span className="pt-unmatched-badge" title="No survey match within 1 ft">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2L14.9 14H1.1L8 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+              <line x1="8" y1="7" x2="8" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="8" cy="12.5" r="0.8" fill="currentColor"/>
+            </svg>
+            No match
+          </span>
+        )}
+
         <span className="pt-coords">{fmtCoord(pt.northing)} N &nbsp; {fmtCoord(pt.easting)} E</span>
         <svg
           className={`pt-chevron${open ? ' open' : ''}`}
@@ -51,11 +71,22 @@ export default function PointCard({ point: pt, selected, onToggle }) {
       {open && (
         <div className="pt-detail open">
           <div className="detail-grid">
-            <DetailCell label="Northing"     val={pt.northing}  />
-            <DetailCell label="Easting"      val={pt.easting}   />
-            <DetailCell label="Elevation"    val={pt.elevation} />
-            <DetailCell label="Feature Code" val={pt.code}      />
+            <DetailCell label="Northing"         val={pt.northing}    />
+            <DetailCell label="Easting"           val={pt.easting}     />
+            <DetailCell label="Surveyed Elev"     val={pt.elevation}   />
+            {hasDesign && <DetailCell label="Design Elev" val={pt.design_elev} highlight />}
+            {hasDesign && pt.cut_fill !== null && (
+              <DetailCell
+                label={pt.cut_fill >= 0 ? 'Cut' : 'Fill'}
+                val={`${Math.abs(pt.cut_fill).toFixed(3)} ft`}
+                highlight
+              />
+            )}
+            <DetailCell label="Feature Code"     val={pt.code}        />
             {obsFields.map(f => <DetailCell key={f.key} label={f.label} val={pt[f.key]} />)}
+            {hasDesign && pt.match_dist !== null && (
+              <DetailCell label="Match Dist" val={`${pt.match_dist.toFixed(3)} ft`} />
+            )}
           </div>
         </div>
       )}

@@ -9,6 +9,12 @@ export function fmtCoord(v) {
   return n.toFixed(4);
 }
 
+export function fmtCutFill(v) {
+  if (v === null || v === undefined) return '';
+  const abs = Math.abs(v).toFixed(3);
+  return v >= 0 ? `C ${abs}` : `F ${abs}`;
+}
+
 export function fmtPrint(v) {
   if (!v || v === '') return '—';
   const n = parseFloat(v);
