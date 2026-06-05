@@ -1,0 +1,211 @@
+import { useState, useRef } from 'react';
+import { parseCSV } from '../csv.js';
+import { printSheets } from '../print.js';
+import PointCard from './PointCard.jsx';
+
+export default function Tool({
+  points, selected, fileName,
+  onPointsLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
+}) {
+  const [over, setOver]           = useState(false);
+  const [filter, setFilter]       = useState('');
+  const [projectName, setProject] = useState('');
+  const [surveyor, setSurveyor]   = useState('');
+  const [units, setUnits]         = useState('ft');
+  const [coordOrder, setCoord]    = useState('nez');
+  const fileRef = useRef(null);
+
+  const hasPoints = points.length > 0;
+
+  function handleFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const pts = parseCSV(e.target.result, coordOrder);
+      if (pts) onPointsLoaded(pts, file.name);
+    };
+    reader.readAsText(file);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setOver(false);
+    handleFile(e.dataTransfer.files[0]);
+  }
+
+  function handlePrint() {
+    const unitsLabel = { ft: 'US Survey Feet', m: 'Meters', intft: 'International Feet' }[units];
+    const pts = points.filter((_, i) => selected.has(i));
+    if (pts.length === 0) { alert('No points selected.'); return; }
+    printSheets(pts, { projectName: projectName || 'Untitled Survey', surveyor, units: unitsLabel });
+  }
+
+  function handleReset() {
+    setFilter('');
+    if (fileRef.current) fileRef.current.value = '';
+    onReset();
+  }
+
+  const filtered = points.filter(p =>
+    !filter || (p.name + ' ' + p.code).toLowerCase().includes(filter.toLowerCase())
+  );
+
+  return (
+    <section className="tool-section" id="tool">
+      <div className="tool-inner">
+        <div className="tool-header">
+          <h2>Cut Sheet Generator</h2>
+          <p>Your files never leave your browser — all processing is local.</p>
+        </div>
+
+        {/* Upload area — fades out once file loaded */}
+        <div id="upload-area" style={hasPoints ? { opacity: 0.4, pointerEvents: 'none' } : {}}>
+          <div
+            id="drop-zone"
+            className={over ? 'over' : ''}
+            onDragOver={e => { e.preventDefault(); setOver(true); }}
+            onDragLeave={() => setOver(false)}
+            onDrop={handleDrop}
+            onClick={() => fileRef.current?.click()}
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.txt"
+              style={{ display: 'none' }}
+              onChange={e => handleFile(e.target.files[0])}
+              aria-label="Upload Trimble Access CSV file"
+            />
+            <div className="dz-icon" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <rect x="6" y="4" width="28" height="32" rx="3" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M24 4v8h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="12" y1="20" x2="28" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="12" y1="25" x2="22" y2="25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div className="dz-label">Drop your Trimble Access CSV here</div>
+            <div className="dz-sub">or <span className="dz-browse">click to browse</span> · .csv or .txt</div>
+          </div>
+
+          <div className="format-hint">
+            <strong>Supported formats:</strong> Standard Trimble Access CSV exports. Columns
+            auto-detected from headers — Point Name, Northing, Easting, Elevation, Feature Code,
+            and observation data.
+          </div>
+        </div>
+
+        {/* Config panel */}
+        {hasPoints && (
+          <div id="config-panel">
+            <div className="config-grid">
+              <div className="field-group">
+                <label htmlFor="project-name">Project / Job Name</label>
+                <input
+                  type="text" id="project-name"
+                  placeholder="e.g. River Crossing Survey 2025"
+                  value={projectName} onChange={e => setProject(e.target.value)}
+                />
+              </div>
+              <div className="field-group">
+                <label htmlFor="surveyor-name">Surveyor</label>
+                <input
+                  type="text" id="surveyor-name"
+                  placeholder="e.g. J. Smith, PLS"
+                  value={surveyor} onChange={e => setSurveyor(e.target.value)}
+                />
+              </div>
+              <div className="field-group">
+                <label htmlFor="unit-sel">Units</label>
+                <select id="unit-sel" value={units} onChange={e => setUnits(e.target.value)}>
+                  <option value="ft">US Survey Feet</option>
+                  <option value="m">Meters</option>
+                  <option value="intft">International Feet</option>
+                </select>
+              </div>
+              <div className="field-group">
+                <label htmlFor="coord-order">Coordinate Order</label>
+                <select id="coord-order" value={coordOrder} onChange={e => setCoord(e.target.value)}>
+                  <option value="nez">N, E, Z — Northing first</option>
+                  <option value="enz">E, N, Z — Easting first</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Summary bar */}
+        {hasPoints && (
+          <div id="summary-bar">
+            <div className="sb-file">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="2" y="1" width="12" height="14" rx="2" stroke="currentColor" strokeWidth="1.2"/>
+                <line x1="5" y1="6" x2="11" y2="6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <line x1="5" y1="9" x2="9" y2="9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              <span>{fileName}</span>
+            </div>
+            <div className="sb-stats">
+              <span><strong>{points.length}</strong> points</span>
+              <span className="sb-div">·</span>
+              <span><strong>{selected.size}</strong> selected</span>
+            </div>
+            <div className="sb-actions">
+              <button className="btn-sm" onClick={onSelectAll}>Select all</button>
+              <button className="btn-sm" onClick={onSelectNone}>Clear</button>
+              <button className="btn-sm" onClick={handleReset}>↩ New file</button>
+            </div>
+          </div>
+        )}
+
+        {/* Search + print */}
+        {hasPoints && (
+          <div id="search-bar">
+            <div className="search-wrap">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2"/>
+                <line x1="10.5" y1="10.5" x2="13.5" y2="13.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Filter by point name or feature code…"
+                aria-label="Search points"
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+              />
+            </div>
+            <button className="btn-print" onClick={handlePrint}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="3" y="6" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                <path d="M5 6V3h6v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <line x1="5" y1="10" x2="8" y2="10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              Print Cut Sheets
+            </button>
+          </div>
+        )}
+
+        {/* Point list */}
+        {hasPoints && (
+          <div id="point-list">
+            {filtered.length === 0
+              ? <p style={{ color: 'var(--ink-light)', fontSize: '0.875rem', padding: '1rem 0' }}>No points match your filter.</p>
+              : filtered.map(pt => {
+                  const i = points.indexOf(pt);
+                  return (
+                    <PointCard
+                      key={i}
+                      point={pt}
+                      selected={selected.has(i)}
+                      onToggle={() => onToggleSelect(i)}
+                    />
+                  );
+                })
+            }
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
