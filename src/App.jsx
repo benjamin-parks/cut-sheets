@@ -1,7 +1,4 @@
 import { useState } from 'react';
-import Header from './components/Header.jsx';
-import Hero from './components/Hero.jsx';
-import HowItWorks from './components/HowItWorks.jsx';
 import Tool from './components/Tool.jsx';
 import Footer from './components/Footer.jsx';
 import { matchPoints } from './match.js';
@@ -67,10 +64,6 @@ export default function App() {
 
   return (
     <>
-      <div id="grain" aria-hidden="true" />
-      <Header />
-      <Hero />
-      <HowItWorks />
       <Tool
         points={displayPoints}
         selected={selected}
