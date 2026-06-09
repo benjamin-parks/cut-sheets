@@ -311,6 +311,13 @@ nav a:hover { color: var(--ink); }
 .field-group select { font-family: var(--sans); font-size: 0.9rem; color: var(--ink); background: var(--paper); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 12px; height: 40px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; appearance: none; -webkit-appearance: none; }
 .field-group select { background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%238a8a80' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
 .field-group input:focus, .field-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,82,42,0.10); }
+.field-group--slider { grid-column: 1 / -1; }
+.field-group--slider label { display: flex; align-items: center; justify-content: space-between; }
+.slider-value { font-family: var(--mono); font-size: 0.78rem; color: var(--accent); font-weight: 500; background: var(--accent-light); padding: 2px 8px; border-radius: 100px; }
+.tolerance-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--accent) 0%, var(--accent) calc((var(--val, 50) - 5) / 195 * 100%), var(--border-strong) calc((var(--val, 50) - 5) / 195 * 100%)); outline: none; cursor: pointer; margin: 4px 0 2px; border: none; }
+.tolerance-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--paper); box-shadow: 0 1px 4px rgba(200,82,42,0.35); cursor: pointer; }
+.tolerance-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--paper); box-shadow: 0 1px 4px rgba(200,82,42,0.35); cursor: pointer; }
+.slider-ticks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; color: var(--ink-faint); margin-top: 2px; }
 
 /* ── SUMMARY BAR ───────────────────────────────────────────────────────────── */
 #summary-bar { margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; padding: 10px 14px; background: var(--paper-warm); border: 1px solid var(--border); border-radius: var(--radius); flex-wrap: wrap; }

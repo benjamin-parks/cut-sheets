@@ -1,4 +1,3 @@
-const TOLERANCE_FT = 50.0;
 
 function dist2d(n1, e1, n2, e2) {
   const dn = parseFloat(n1) - parseFloat(n2);
@@ -9,7 +8,7 @@ function dist2d(n1, e1, n2, e2) {
 // For each field point (excluding cck### check shots), find the nearest
 // design point within TOLERANCE_FT and compute cut/fill.
 // Multiple field points can match the same design point.
-export function matchPoints(surveyPoints, designPoints) {
+export function matchPoints(surveyPoints, designPoints, toleranceFt = 50) {
   const designNames = new Set(designPoints.map(dp => (dp.name || '').trim()));
 
   return surveyPoints
@@ -22,7 +21,7 @@ export function matchPoints(surveyPoints, designPoints) {
 
       for (const dp of designPoints) {
         const d = dist2d(sp.northing, sp.easting, dp.northing, dp.easting);
-        if (d < bestDist && d <= TOLERANCE_FT) { bestDist = d; best = dp; }
+        if (d < bestDist && d <= toleranceFt) { bestDist = d; best = dp; }
       }
 
       const unmatched  = best === null;

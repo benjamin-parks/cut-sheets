@@ -63,6 +63,7 @@ function DropZone({ label, fileName, onFile, hint }) {
 
 export default function Tool({
   points, selected, surveyFile, designFile, hasDesign,
+  tolerance, onToleranceChange,
   onSurveyLoaded, onDesignLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
 }) {
   const [filter, setFilter]       = useState('');
@@ -171,6 +172,26 @@ export default function Tool({
                   <option value="enz">E, N, Z — Easting first</option>
                 </select>
               </div>
+              {hasDesign && (
+                <div className="field-group field-group--slider">
+                  <label htmlFor="tolerance-slider">
+                    Search Radius
+                    <span className="slider-value">{tolerance} ft</span>
+                  </label>
+                  <input
+                    type="range"
+                    id="tolerance-slider"
+                    min="5" max="200" step="5"
+                    value={tolerance}
+                    onChange={e => onToleranceChange(Number(e.target.value))}
+                    className="tolerance-slider"
+                  />
+                  <div className="slider-ticks">
+                    <span>5 ft</span>
+                    <span>200 ft</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

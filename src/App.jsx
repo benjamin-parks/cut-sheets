@@ -13,21 +13,31 @@ export default function App() {
   const [surveyFile, setSurveyFile]       = useState('');
   const [designFile, setDesignFile]       = useState('');
   const [selected, setSelected]           = useState(new Set());
+  const [tolerance, setTolerance]         = useState(50);
+
+  function rematch(survey, design, tol) {
+    const merged = design.length > 0 ? matchPoints(survey, design, tol) : survey;
+    setMergedPoints(merged);
+    setSelected(new Set(merged.map((_, i) => i)));
+  }
 
   function handleSurveyLoaded(pts, name) {
     setSurveyPoints(pts);
     setSurveyFile(name);
-    const merged = designPoints.length > 0 ? matchPoints(pts, designPoints) : pts;
-    setMergedPoints(merged);
-    setSelected(new Set(merged.map((_, i) => i)));
+    rematch(pts, designPoints, tolerance);
   }
 
   function handleDesignLoaded(pts, name) {
     setDesignPoints(pts);
     setDesignFile(name);
-    const merged = surveyPoints.length > 0 ? matchPoints(surveyPoints, pts) : pts;
-    setMergedPoints(merged);
-    setSelected(new Set(merged.map((_, i) => i)));
+    rematch(surveyPoints, pts, tolerance);
+  }
+
+  function handleToleranceChange(val) {
+    setTolerance(val);
+    if (surveyPoints.length > 0 && designPoints.length > 0) {
+      rematch(surveyPoints, designPoints, val);
+    }
   }
 
   function handleReset() {
@@ -67,6 +77,8 @@ export default function App() {
         surveyFile={surveyFile}
         designFile={designFile}
         hasDesign={designPoints.length > 0}
+        tolerance={tolerance}
+        onToleranceChange={handleToleranceChange}
         onSurveyLoaded={handleSurveyLoaded}
         onDesignLoaded={handleDesignLoaded}
         onReset={handleReset}
