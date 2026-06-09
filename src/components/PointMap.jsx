@@ -33,15 +33,16 @@ function buildBaseTransform(surveyPoints, designPoints, width, height) {
   };
 }
 
-function drawArrow(ctx, x1, y1, x2, y2) {
+function drawArrow(ctx, x1, y1, x2, y2, zoom) {
   const dx = x2 - x1, dy = y2 - y1;
   const len = Math.sqrt(dx * dx + dy * dy);
   if (len < 1) return;
   const ux = dx / len, uy = dy / len;
-  const tx = x2 - ux * (PT_R + 2);
-  const ty = y2 - uy * (PT_R + 2);
-  const sx = x1 + ux * (PT_R + 2);
-  const sy = y1 + uy * (PT_R + 2);
+  const r  = PT_R / zoom;
+  const tx = x2 - ux * (r + 1 / zoom);
+  const ty = y2 - uy * (r + 1 / zoom);
+  const sx = x1 + ux * (r + 1 / zoom);
+  const sy = y1 + uy * (r + 1 / zoom);
 
   ctx.beginPath();
   ctx.moveTo(sx, sy);
@@ -126,7 +127,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       const src = xf.toCanvas(mp.northing, mp.easting);
       const dst = designMap[mp.design_point_name];
       if (!dst) continue;
-      drawArrow(ctx, src.x, src.y, dst.x, dst.y);
+      drawArrow(ctx, src.x, src.y, dst.x, dst.y, zoom);
     }
 
     // Design points (red)
