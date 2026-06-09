@@ -6,9 +6,9 @@ const ARROW_HEAD = 7;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 50;
 
-function buildBaseTransform(surveyPoints, designPoints, width, height) {
-  const allN = [...surveyPoints.map(p => parseFloat(p.northing)), ...designPoints.map(p => parseFloat(p.northing))].filter(isFinite);
-  const allE = [...surveyPoints.map(p => parseFloat(p.easting)),  ...designPoints.map(p => parseFloat(p.easting))].filter(isFinite);
+function buildBaseTransform(mergedPoints, designPoints, width, height) {
+  const allN = [...mergedPoints.map(p => parseFloat(p.northing)), ...designPoints.map(p => parseFloat(p.northing))].filter(isFinite);
+  const allE = [...mergedPoints.map(p => parseFloat(p.easting)),  ...designPoints.map(p => parseFloat(p.easting))].filter(isFinite);
   if (!allN.length) return null;
 
   const minN = Math.min(...allN), maxN = Math.max(...allN);
@@ -96,7 +96,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
     canvas.height = h;
     ctx.clearRect(0, 0, w, h);
 
-    const xf = buildBaseTransform(surveyPoints, designPoints, w, h);
+    const xf = buildBaseTransform(mergedPoints, designPoints, w, h);
     if (!xf) return;
 
     const { ox, oy, zoom } = vp.current;
@@ -214,7 +214,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
     }
 
     // Hit-test
-    const xf = buildBaseTransform(surveyPoints, designPoints, size.w, size.h);
+    const xf = buildBaseTransform(mergedPoints, designPoints, size.w, size.h);
     if (!xf) return;
     const { cx, cy } = canvasPoint(e);
     const HIT = (PT_R + 4) / vp.current.zoom;
