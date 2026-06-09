@@ -21,7 +21,7 @@ export function offsetDesc(pt) {
   if (!pt.design_point_name || pt.match_dist === null || pt.match_dist === undefined) return pt.code || '';
   const ft = Math.round(pt.match_dist);
   const to = pt.design_point_code || pt.design_point_name;
-  return `${ft}' os hub to ${to}`;
+  return ft === 0 ? to : `${ft}' os to ${to}`;
 }
 
 export function fmtPrint(v) {
