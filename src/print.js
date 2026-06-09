@@ -22,12 +22,6 @@ export function printSheets(pts, { projectName, surveyor, units }) {
         <td class="tc-num">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</td>
         ${hasDesign    ? `<td class="tc-cf ${isCut ? 'tc-cut' : isFill ? 'tc-fill' : ''}">${cfLabel || (pt.unmatched ? '⚠ no match' : '—')}</td>` : ''}
         ${hasDesignPt  ? `<td class="tc-dp">${esc(pt.design_point_name || '')}</td>` : ''}
-        <td class="tc-notes"></td>
-        <td class="tc-notes"></td>
-        <td class="tc-notes"></td>
-        <td class="tc-notes"></td>
-        <td class="tc-notes"></td>
-        <td class="tc-notes"></td>
       </tr>`;
   }).join('');
 
@@ -55,12 +49,6 @@ export function printSheets(pts, { projectName, surveyor, units }) {
             <th>Staked Elev.</th>
             ${hasDesign   ? '<th class="th-cf">Cut/Fill</th>' : ''}
             ${hasDesignPt ? '<th>Computed Pt.</th>' : ''}
-            <th class="th-notes">Column1</th>
-            <th class="th-notes">Column2</th>
-            <th class="th-notes">Column3</th>
-            <th class="th-notes">Column4</th>
-            <th class="th-notes">Column5</th>
-            <th class="th-notes">Column6</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>

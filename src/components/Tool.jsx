@@ -105,7 +105,6 @@ export default function Tool({
       'Staked Elev.',
       ...(hasDesignData ? ['Cut/Fill'] : []),
       ...(hasDesignPt   ? ['Computed Pt.'] : []),
-      'Column1', 'Column2', 'Column3', 'Column4', 'Column5', 'Column6',
     ];
 
     const escape = v => {
@@ -124,7 +123,6 @@ export default function Tool({
         pt.elevation,
         ...(hasDesignData ? [cf] : []),
         ...(hasDesignPt   ? [pt.design_point_name ?? ''] : []),
-        '', '', '', '', '', '',
       ].map(escape).join(',');
     });
 
