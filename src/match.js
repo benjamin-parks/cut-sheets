@@ -7,7 +7,7 @@ function dist2d(n1, e1, n2, e2) {
 
 // If the code contains a ####-#### pattern, return the digits before the dash.
 function extractCodeRef(code) {
-  const m = (code || '').match(/\b(\d+)-\d+/);
+  const m = (code || '').match(/\b(\d+)\s*-\s*\d+/);
   return m ? m[1] : null;
 }
 
