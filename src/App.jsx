@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import HowItWorks from './components/HowItWorks.jsx';
 import Tool from './components/Tool.jsx';
 import Footer from './components/Footer.jsx';
 import { matchPoints } from './match.js';
@@ -64,6 +65,7 @@ export default function App() {
 
   return (
     <>
+      <HowItWorks />
       <Tool
         points={displayPoints}
         selected={selected}
