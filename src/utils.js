@@ -15,6 +15,15 @@ export function fmtCutFill(v) {
   return v >= 0 ? `C ${abs}` : `F ${abs}`;
 }
 
+// Build the offset descriptor shown in the Descriptor column.
+// e.g. "25' os hub to SP-20A INV" when a matched design point exists.
+export function offsetDesc(pt) {
+  if (!pt.design_point_name || pt.match_dist === null || pt.match_dist === undefined) return pt.code || '';
+  const ft = Math.round(pt.match_dist);
+  const to = pt.design_point_code || pt.design_point_name;
+  return `${ft}' os hub to ${to}`;
+}
+
 export function fmtPrint(v) {
   if (!v || v === '') return '—';
   const n = parseFloat(v);

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { parseCSV } from '../csv.js';
 import { printSheets } from '../print.js';
+import { offsetDesc } from '../utils.js';
 import PointCard from './PointCard.jsx';
 import PointMap from './PointMap.jsx';
 
@@ -121,7 +122,7 @@ export default function Tool({
         ? pt.cut_fill.toFixed(2)
         : '';
       return [
-        pt.name, pt.code,
+        pt.name, offsetDesc(pt),
         ...(hasDesignData ? [pt.design_elev ?? ''] : []),
         pt.elevation,
         ...(hasDesignData ? [cf] : []),

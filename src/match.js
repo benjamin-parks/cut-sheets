@@ -59,6 +59,7 @@ export function matchPoints(surveyPoints, designPoints, toleranceFt = 50) {
         ppm:               sp.ppm        ?? '',
         method:            sp.method     ?? '',
         design_point_name: best?.name    ?? '',
+        design_point_code: best?.code    ?? '',
         design_elev:       !isNaN(designElev) && designElev !== 0 ? best.elevation : '',
         cut_fill:          cutFill,
         match_dist:        best ? bestDist : null,

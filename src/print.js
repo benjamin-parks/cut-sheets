@@ -1,4 +1,4 @@
-import { esc, fmtPrint } from './utils.js';
+import { esc, fmtPrint, offsetDesc } from './utils.js';
 
 export function printSheets(pts, { projectName, surveyor, units }) {
   const date = new Date().toLocaleDateString('en-US', {
@@ -22,7 +22,7 @@ export function printSheets(pts, { projectName, surveyor, units }) {
     return `
       <tr class="${rowClass}">
         <td class="tc-pt">${esc(pt.name)}</td>
-        <td class="tc-code">${esc(pt.code || '')}</td>
+        <td class="tc-code">${esc(offsetDesc(pt))}</td>
         ${hasDesign    ? `<td class="tc-num tc-design">${pt.design_elev ? fmtPrint(pt.design_elev) : '—'}</td>` : ''}
         <td class="tc-num">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</td>
         ${hasDesign    ? `<td class="tc-cf ${isCut ? 'tc-cut' : isFill ? 'tc-fill' : ''}">${cfLabel || (pt.unmatched ? '⚠ no match' : '—')}</td>` : ''}
