@@ -21,7 +21,7 @@ export function matchPoints(surveyPoints, designPoints, toleranceFt = 50) {
 
       for (const dp of designPoints) {
         const d = dist2d(sp.northing, sp.easting, dp.northing, dp.easting);
-        if (d < bestDist && d <= toleranceFt) { bestDist = d; best = dp; }
+        if (d < bestDist && d <= toleranceFt + 1) { bestDist = d; best = dp; }
       }
 
       const unmatched  = best === null;
