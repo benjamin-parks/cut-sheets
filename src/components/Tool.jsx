@@ -100,10 +100,12 @@ export default function Tool({
     const hasDesignPt   = hasDesignData && pts.some(p => p.design_point_name);
 
     const headers = [
-      'Field Point', 'Northing', 'Easting', 'Surveyed Elev',
-      ...(hasDesignData ? ['Design Elev', 'Cut/Fill'] : []),
-      'Code',
-      ...(hasDesignPt ? ['Design Point'] : []),
+      'Stored Pt.', 'Descriptor',
+      ...(hasDesignData ? ['Proposed'] : []),
+      'Staked Elev.',
+      ...(hasDesignData ? ['Cut/Fill'] : []),
+      ...(hasDesignPt   ? ['Computed Pt.'] : []),
+      'Column1', 'Column2', 'Column3', 'Column4', 'Column5', 'Column6',
     ];
 
     const escape = v => {
@@ -114,13 +116,15 @@ export default function Tool({
 
     const rows = pts.map(pt => {
       const cf = pt.cut_fill !== null && pt.cut_fill !== undefined
-        ? `${pt.cut_fill >= 0 ? 'C' : 'F'} ${Math.abs(pt.cut_fill).toFixed(3)}`
+        ? pt.cut_fill.toFixed(2)
         : '';
       return [
-        pt.name, pt.northing, pt.easting, pt.elevation,
-        ...(hasDesignData ? [pt.design_elev ?? '', cf] : []),
-        pt.code,
-        ...(hasDesignPt ? [pt.design_point_name ?? ''] : []),
+        pt.name, pt.code,
+        ...(hasDesignData ? [pt.design_elev ?? ''] : []),
+        pt.elevation,
+        ...(hasDesignData ? [cf] : []),
+        ...(hasDesignPt   ? [pt.design_point_name ?? ''] : []),
+        '', '', '', '', '', '',
       ].map(escape).join(',');
     });
 

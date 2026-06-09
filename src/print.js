@@ -9,25 +9,25 @@ export function printSheets(pts, { projectName, surveyor, units }) {
   const hasDesignPt = hasDesign && pts.some(p => p.design_point_name);
 
   const rows = pts.map((pt, idx) => {
-    const isCut   = pt.cut_fill !== null && pt.cut_fill >= 0;
-    const isFill  = pt.cut_fill !== null && pt.cut_fill < 0;
-    const cfLabel = pt.cut_fill !== null
-      ? `${isCut ? 'C' : 'F'} ${Math.abs(pt.cut_fill).toFixed(3)}`
-      : '';
+    const isCut    = pt.cut_fill !== null && pt.cut_fill >= 0;
+    const isFill   = pt.cut_fill !== null && pt.cut_fill < 0;
+    const cfLabel  = pt.cut_fill !== null ? pt.cut_fill.toFixed(2) : '';
     const rowClass = pt.unmatched ? 'row-warn' : idx % 2 === 0 ? '' : 'row-alt';
 
     return `
       <tr class="${rowClass}">
         <td class="tc-pt">${esc(pt.name)}</td>
-        <td class="tc-num">${fmtPrint(pt.northing)}</td>
-        <td class="tc-num">${fmtPrint(pt.easting)}</td>
-        <td class="tc-num">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</td>
-        ${hasDesign    ? `<td class="tc-num tc-design">${pt.design_elev ? fmtPrint(pt.design_elev) : '—'}</td>` : ''}
-        ${hasDesign    ? `<td class="tc-cf ${isCut ? 'tc-cut' : isFill ? 'tc-fill' : ''}">${cfLabel || (pt.unmatched ? '⚠ no match' : '—')}</td>` : ''}
         <td class="tc-code">${esc(pt.code || '')}</td>
+        ${hasDesign    ? `<td class="tc-num tc-design">${pt.design_elev ? fmtPrint(pt.design_elev) : '—'}</td>` : ''}
+        <td class="tc-num">${pt.elevation ? fmtPrint(pt.elevation) : '—'}</td>
+        ${hasDesign    ? `<td class="tc-cf ${isCut ? 'tc-cut' : isFill ? 'tc-fill' : ''}">${cfLabel || (pt.unmatched ? '⚠ no match' : '—')}</td>` : ''}
         ${hasDesignPt  ? `<td class="tc-dp">${esc(pt.design_point_name || '')}</td>` : ''}
         <td class="tc-notes"></td>
-        <td class="tc-init"></td>
+        <td class="tc-notes"></td>
+        <td class="tc-notes"></td>
+        <td class="tc-notes"></td>
+        <td class="tc-notes"></td>
+        <td class="tc-notes"></td>
       </tr>`;
   }).join('');
 
@@ -49,16 +49,18 @@ export function printSheets(pts, { projectName, surveyor, units }) {
       <table class="pt-table">
         <thead>
           <tr>
-            <th>Field Pt</th>
-            <th>Northing</th>
-            <th>Easting</th>
-            <th>Surv. Elev</th>
-            ${hasDesign   ? '<th class="th-design">Design Elev</th>' : ''}
-            ${hasDesign   ? '<th class="th-cf">Cut / Fill</th>' : ''}
-            <th>Code</th>
-            ${hasDesignPt ? '<th>Design Pt</th>' : ''}
-            <th class="th-notes">Field Notes</th>
-            <th class="th-init">Init.</th>
+            <th>Stored Pt.</th>
+            <th>Descriptor</th>
+            ${hasDesign   ? '<th class="th-design">Proposed</th>' : ''}
+            <th>Staked Elev.</th>
+            ${hasDesign   ? '<th class="th-cf">Cut/Fill</th>' : ''}
+            ${hasDesignPt ? '<th>Computed Pt.</th>' : ''}
+            <th class="th-notes">Column1</th>
+            <th class="th-notes">Column2</th>
+            <th class="th-notes">Column3</th>
+            <th class="th-notes">Column4</th>
+            <th class="th-notes">Column5</th>
+            <th class="th-notes">Column6</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
