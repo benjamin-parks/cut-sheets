@@ -101,12 +101,23 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       designMap[dp.name] = { x, y };
     }
 
+    // Survey points within 3 inches (0.25 ft) of their match are suppressed —
+    // the red dot already represents the position adequately.
+    const THREE_INCHES_FT = 0.25;
+    const visibleSurvey = new Set();
+    for (const mp of mergedPoints) {
+      if (mp.unmatched || !mp.design_point_name || (mp.match_dist ?? Infinity) > THREE_INCHES_FT) {
+        visibleSurvey.add(mp.name);
+      }
+    }
+
     // Draw arrows first (behind points)
     ctx.strokeStyle = 'rgba(99,102,241,0.55)';
     ctx.fillStyle   = 'rgba(99,102,241,0.55)';
     ctx.lineWidth   = 1.2;
     for (const mp of mergedPoints) {
       if (!mp.design_point_name || mp.unmatched) continue;
+      if (!visibleSurvey.has(mp.name)) continue;
       const src = xf.toCanvas(mp.northing, mp.easting);
       const dst = designMap[mp.design_point_name];
       if (!dst) continue;
@@ -125,8 +136,9 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       ctx.stroke();
     }
 
-    // Draw survey points (blue)
+    // Draw survey points (blue) — skip if within 3 inches of matched design point
     for (const sp of surveyPoints) {
+      if (!visibleSurvey.has(sp.name)) continue;
       const { x, y } = xf.toCanvas(sp.northing, sp.easting);
       ctx.beginPath();
       ctx.arc(x, y, PT_R, 0, Math.PI * 2);
