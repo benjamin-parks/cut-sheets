@@ -133,6 +133,8 @@ export default function Tool({
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  function handleReset() {
     setFilter('');
     onReset();
   }
