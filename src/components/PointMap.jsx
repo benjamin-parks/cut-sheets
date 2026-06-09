@@ -110,7 +110,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       designMap[dp.name] = { x, y };
     }
 
-    const THREE_INCHES_FT = 0.15;
+    const THREE_INCHES_FT = 0.5;
     const visibleSurvey = new Set();
     for (const mp of mergedPoints) {
       if (mp.unmatched || !mp.design_point_name || (mp.match_dist ?? Infinity) > THREE_INCHES_FT) {
