@@ -335,6 +335,8 @@ nav a:hover { color: var(--ink); }
 .search-wrap svg { position: absolute; left: 12px; color: var(--ink-light); pointer-events: none; }
 #search-input { font-family: var(--sans); font-size: 0.875rem; color: var(--ink); background: var(--paper-card); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 12px 9px 36px; height: 40px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
 #search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,82,42,0.10); }
+.btn-save { display: flex; align-items: center; gap: 8px; background: var(--paper); color: var(--ink-mid); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 20px; font-family: var(--sans); font-size: 0.875rem; font-weight: 500; cursor: pointer; height: 40px; white-space: nowrap; transition: background 0.12s, color 0.12s, border-color 0.12s; letter-spacing: -0.01em; }
+.btn-save:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .btn-print { display: flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 9px 20px; font-family: var(--sans); font-size: 0.875rem; font-weight: 500; cursor: pointer; height: 40px; white-space: nowrap; transition: background 0.15s, transform 0.12s, box-shadow 0.15s; letter-spacing: -0.01em; box-shadow: 0 2px 8px rgba(200,82,42,0.25); }
 .btn-print:hover { background: var(--accent-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(200,82,42,0.35); }
 .btn-print:active { transform: translateY(0); }

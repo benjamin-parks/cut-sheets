@@ -92,7 +92,47 @@ export default function Tool({
     printSheets(pts, { projectName: projectName || 'Untitled Survey', surveyor, units: unitsLabel });
   }
 
-  function handleReset() {
+  function handleSaveCSV() {
+    const pts = points.filter((_, i) => selected.has(i));
+    if (pts.length === 0) { alert('No points selected.'); return; }
+
+    const hasDesignData = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
+    const hasDesignPt   = hasDesignData && pts.some(p => p.design_point_name);
+
+    const headers = [
+      'Field Point', 'Northing', 'Easting', 'Surveyed Elev',
+      ...(hasDesignData ? ['Design Elev', 'Cut/Fill'] : []),
+      'Code',
+      ...(hasDesignPt ? ['Design Point'] : []),
+    ];
+
+    const escape = v => {
+      const s = String(v ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const rows = pts.map(pt => {
+      const cf = pt.cut_fill !== null && pt.cut_fill !== undefined
+        ? `${pt.cut_fill >= 0 ? 'C' : 'F'} ${Math.abs(pt.cut_fill).toFixed(3)}`
+        : '';
+      return [
+        pt.name, pt.northing, pt.easting, pt.elevation,
+        ...(hasDesignData ? [pt.design_elev ?? '', cf] : []),
+        pt.code,
+        ...(hasDesignPt ? [pt.design_point_name ?? ''] : []),
+      ].map(escape).join(',');
+    });
+
+    const csv  = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${(projectName || 'cut-sheet').replace(/\s+/g, '_')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
     setFilter('');
     onReset();
   }
@@ -238,6 +278,13 @@ export default function Tool({
                 onChange={e => setFilter(e.target.value)}
               />
             </div>
+            <button className="btn-save" onClick={handleSaveCSV}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 12h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              </svg>
+              Save CSV
+            </button>
             <button className="btn-print" onClick={handlePrint}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <rect x="3" y="6" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.2"/>
