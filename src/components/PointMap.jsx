@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-const PAD = 40;
+const PAD = 20;
 const PT_R = 5;
 const ARROW_HEAD = 7;
 const ZOOM_MIN = 0.5;
@@ -76,7 +76,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
     if (!wrapRef.current) return;
     const ro = new ResizeObserver(entries => {
       const { width } = entries[0].contentRect;
-      setSize({ w: width, h: Math.max(300, Math.round(width * 0.55)) });
+      setSize({ w: width, h: Math.max(400, Math.round(width * 0.7)) });
     });
     ro.observe(wrapRef.current);
     return () => ro.disconnect();
