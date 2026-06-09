@@ -93,10 +93,11 @@ export default function Tool({
   }
 
   function handleSaveCSV() {
-    const pts = points.filter((_, i) => selected.has(i));
+    let pts = points.filter((_, i) => selected.has(i));
     if (pts.length === 0) { alert('No points selected.'); return; }
 
     const hasDesignData = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
+    if (hasDesignData) pts = pts.filter(p => p.design_elev !== undefined && p.design_elev !== '' && parseFloat(p.design_elev) !== 0);
     const hasDesignPt   = hasDesignData && pts.some(p => p.design_point_name);
 
     const headers = [

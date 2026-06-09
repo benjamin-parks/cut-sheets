@@ -8,7 +8,12 @@ export function printSheets(pts, { projectName, surveyor, units }) {
   const hasDesign  = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
   const hasDesignPt = hasDesign && pts.some(p => p.design_point_name);
 
-  const rows = pts.map((pt, idx) => {
+  // Exclude rows with no valid proposed elevation
+  const printPts = hasDesign
+    ? pts.filter(p => p.design_elev !== undefined && p.design_elev !== '' && parseFloat(p.design_elev) !== 0)
+    : pts;
+
+  const rows = printPts.map((pt, idx) => {
     const isCut    = pt.cut_fill !== null && pt.cut_fill >= 0;
     const isFill   = pt.cut_fill !== null && pt.cut_fill < 0;
     const cfLabel  = pt.cut_fill !== null ? pt.cut_fill.toFixed(2) : '';
@@ -36,7 +41,7 @@ export function printSheets(pts, { projectName, surveyor, units }) {
           ${surveyor ? `<div>${esc(surveyor)}</div>` : ''}
           <div>${date}</div>
           <div>${esc(units)}</div>
-          <div>${pts.length} points</div>
+          <div>${printPts.length} points</div>
         </div>
       </div>
 
