@@ -85,6 +85,8 @@ export default function App() {
         onToggleSelect={toggleSelect}
         onSelectAll={selectAll}
         onSelectNone={selectNone}
+        rawSurveyPoints={surveyPoints}
+        rawDesignPoints={designPoints}
       />
       <Footer />
     </>

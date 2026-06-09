@@ -514,3 +514,52 @@ footer { background: var(--ink); color: rgba(247,245,240,0.40); padding: 1.5rem 
   nav a:not(.nav-cta) { display: none; }
   .footer-right { display: none; }
 }
+
+/* ── MAP ───────────────────────────────────────────────────────────────────── */
+.map-wrap {
+  position: relative;
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--paper-card);
+}
+
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.75rem;
+  color: var(--ink-mid);
+  border-bottom: 1px solid var(--border);
+  background: var(--paper-warm);
+}
+
+.map-legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.6);
+  flex-shrink: 0;
+}
+
+.map-legend-arrow::before {
+  content: '→';
+  color: #6366f1;
+  margin-left: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.map-tooltip {
+  pointer-events: none;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}

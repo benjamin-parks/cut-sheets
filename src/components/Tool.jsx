@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { parseCSV } from '../csv.js';
 import { printSheets } from '../print.js';
 import PointCard from './PointCard.jsx';
+import PointMap from './PointMap.jsx';
 
 function DropZone({ label, fileName, onFile, hint }) {
   const [over, setOver] = useState(false);
@@ -65,6 +66,7 @@ export default function Tool({
   points, selected, surveyFile, designFile, hasDesign,
   tolerance, onToleranceChange,
   onSurveyLoaded, onDesignLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
+  rawSurveyPoints, rawDesignPoints,
 }) {
   const [filter, setFilter]       = useState('');
   const [projectName, setProject] = useState('');
@@ -264,6 +266,15 @@ export default function Tool({
               <button className="btn-sm" onClick={handleReset}>↩ New file</button>
             </div>
           </div>
+        )}
+
+        {/* Map */}
+        {hasPoints && hasDesign && rawSurveyPoints.length > 0 && (
+          <PointMap
+            surveyPoints={rawSurveyPoints}
+            designPoints={rawDesignPoints}
+            mergedPoints={points}
+          />
         )}
 
         {/* Search + print */}
