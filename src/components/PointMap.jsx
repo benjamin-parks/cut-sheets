@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { offsetDesc } from '../utils.js';
 
 const PAD = 20;
 const PT_R = 5;
@@ -222,7 +223,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       if (!isDotVisible(sp)) continue;
       const { x, y } = xf.toCanvas(sp.northing, sp.easting);
       if (Math.abs(cx - x) < HIT && Math.abs(cy - y) < HIT) {
-        setHovered({ name: sp.name, code: sp.code, n: sp.northing, e: sp.easting, type: 'survey', cutFill: sp.cut_fill });
+        setHovered({ name: sp.name, code: offsetDesc(sp), n: sp.northing, e: sp.easting, type: 'survey', cutFill: sp.cut_fill });
         return;
       }
     }
