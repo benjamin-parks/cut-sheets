@@ -5,6 +5,13 @@ const PT_R = 5;
 const ARROW_HEAD = 7;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 50;
+// Staked dots closer than this to their matched design point are hidden so
+// the proposed location stays visible. Output (CSV/PDF) is unaffected.
+const SUPPRESS_FT = 0.5;
+
+function isDotVisible(mp) {
+  return mp.unmatched || !mp.design_point_name || (mp.match_dist ?? Infinity) > SUPPRESS_FT;
+}
 
 function buildBaseTransform(mergedPoints, designPoints, width, height) {
   const allN = [...mergedPoints.map(p => parseFloat(p.northing)), ...designPoints.map(p => parseFloat(p.northing))].filter(isFinite);
@@ -110,20 +117,12 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       designMap[dp.name] = { x, y };
     }
 
-    const THREE_INCHES_FT = 0.5;
-    const visibleSurvey = new Set();
-    for (const mp of mergedPoints) {
-      if (mp.unmatched || !mp.design_point_name || (mp.match_dist ?? Infinity) > THREE_INCHES_FT) {
-        visibleSurvey.add(mp.name);
-      }
-    }
-
     // Arrows
     ctx.strokeStyle = 'rgba(99,102,241,0.55)';
     ctx.fillStyle   = 'rgba(99,102,241,0.55)';
     ctx.lineWidth   = 1.2 / zoom;
     for (const mp of mergedPoints) {
-      if (!mp.design_point_name || mp.unmatched || !visibleSurvey.has(mp.name)) continue;
+      if (!mp.design_point_name || mp.unmatched || !isDotVisible(mp)) continue;
       const src = xf.toCanvas(mp.northing, mp.easting);
       const dst = designMap[mp.design_point_name];
       if (!dst) continue;
@@ -142,9 +141,9 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       ctx.stroke();
     }
 
-    // Survey points (blue)
-    for (const sp of surveyPoints) {
-      if (!visibleSurvey.has(sp.name)) continue;
+    // Staked points (blue) — only the filtered set, minus suppressed dots
+    for (const sp of mergedPoints) {
+      if (!isDotVisible(sp)) continue;
       const { x, y } = xf.toCanvas(sp.northing, sp.easting);
       ctx.beginPath();
       ctx.arc(x, y, PT_R / zoom, 0, Math.PI * 2);
@@ -156,7 +155,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
     }
 
     ctx.restore();
-  }, [surveyPoints, designPoints, mergedPoints, size]);
+  }, [designPoints, mergedPoints, size]);
 
   useEffect(() => { redraw(); }, [redraw]);
 
@@ -219,10 +218,11 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
     const { cx, cy } = canvasPoint(e);
     const HIT = (PT_R + 4) / vp.current.zoom;
 
-    for (const sp of surveyPoints) {
+    for (const sp of mergedPoints) {
+      if (!isDotVisible(sp)) continue;
       const { x, y } = xf.toCanvas(sp.northing, sp.easting);
       if (Math.abs(cx - x) < HIT && Math.abs(cy - y) < HIT) {
-        setHovered({ name: sp.name, code: sp.code, n: sp.northing, e: sp.easting, type: 'survey' });
+        setHovered({ name: sp.name, code: sp.code, n: sp.northing, e: sp.easting, type: 'survey', cutFill: sp.cut_fill });
         return;
       }
     }
@@ -234,7 +234,7 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
       }
     }
     setHovered(null);
-  }, [surveyPoints, designPoints, size, redraw]);
+  }, [mergedPoints, designPoints, size, redraw]);
 
   const handleMouseUp = useCallback(() => { drag.current = null; }, []);
 
@@ -267,6 +267,11 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
           <div style={{ fontSize: '0.75rem', opacity: 0.75, marginTop: 2 }}>
             N {parseFloat(hovered.n).toFixed(3)} &nbsp; E {parseFloat(hovered.e).toFixed(3)}
           </div>
+          {hovered.cutFill !== null && hovered.cutFill !== undefined && (
+            <div style={{ fontSize: '0.75rem', marginTop: 2 }}>
+              {hovered.cutFill >= 0 ? 'Cut' : 'Fill'} {Math.abs(hovered.cutFill).toFixed(2)}′
+            </div>
+          )}
           <div style={{ fontSize: '0.7rem', marginTop: 2, opacity: 0.6 }}>
             {hovered.type === 'survey' ? 'Staked point' : 'Computed point'}
           </div>

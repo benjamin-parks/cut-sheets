@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fmtCoord, fmtCutFill } from '../utils.js';
+import { fmtCoord } from '../utils.js';
 
 function DetailCell({ label, val, highlight }) {
   const empty = val === null || val === undefined || val === '';
@@ -49,7 +49,7 @@ export default function PointCard({ point: pt, selected, onToggle }) {
         )}
 
         {pt.unmatched && (
-          <span className="pt-unmatched-badge" title="No survey match within 1 ft">
+          <span className="pt-unmatched-badge" title="No design match within the search radius">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M8 2L14.9 14H1.1L8 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
               <line x1="8" y1="7" x2="8" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>

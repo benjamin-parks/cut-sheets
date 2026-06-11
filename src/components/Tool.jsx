@@ -169,7 +169,7 @@ export default function Tool({
             label="Drop design CSV (optional)"
             fileName={designFile}
             onFile={handleDesignFile}
-            hint="Design elevations — matched by nearest N/E coordinate within 50 ft"
+            hint="Design elevations — matched by description reference or nearest N/E within the search radius"
           />
         </div>
 
@@ -181,7 +181,7 @@ export default function Tool({
               <line x1="8" y1="7" x2="8" y2="10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
               <circle cx="8" cy="12" r="0.6" fill="currentColor"/>
             </svg>
-            <strong>{unmatchedCount} design point{unmatchedCount > 1 ? 's' : ''}</strong> had no survey match within {tolerance} ft — shown with a warning flag.
+            <strong>{unmatchedCount} field point{unmatchedCount > 1 ? 's' : ''}</strong> had no design match within {tolerance} ft — shown with a warning flag.
           </div>
         )}
 
