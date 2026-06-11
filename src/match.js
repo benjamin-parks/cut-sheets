@@ -11,12 +11,13 @@ function extractCodeRef(code) {
   return m ? m[1] : null;
 }
 
-// For each field point (excluding cck### check shots), find the nearest
-// design point within TOLERANCE_FT and compute cut/fill.
-// If the point's description contains a ####-#### pattern, the number before
-// the dash is used as a direct name lookup against the design file first;
-// proximity search is only used when no such reference exists or it doesn't match.
-export function matchPoints(surveyPoints, designPoints, toleranceFt = 50) {
+// For each field point (excluding cck### check shots), find the matching
+// design point and compute cut/fill. Match priority:
+//   1. Manual override (user reassignment, keyed by field point name)
+//   2. ####-#### code reference in the description (number before the dash
+//      looked up as a design point name)
+//   3. Nearest design point within toleranceFt
+export function matchPoints(surveyPoints, designPoints, toleranceFt = 50, overrides = {}) {
   const designNames  = new Set(designPoints.map(dp => (dp.name || '').trim()));
   const designByName = Object.fromEntries(designPoints.map(dp => [(dp.name || '').trim(), dp]));
 
@@ -25,11 +26,18 @@ export function matchPoints(surveyPoints, designPoints, toleranceFt = 50) {
     .filter(sp => !designNames.has((sp.name || '').trim()))
     .filter(sp => isNaN(sp.name) || parseFloat(sp.name) > 999)
     .map(sp => {
-      // 1. Try direct name lookup from ####-#### code reference
-      const codeRef = extractCodeRef(sp.code);
-      let best      = codeRef ? (designByName[codeRef] ?? null) : null;
+      // 1. Manual override
+      const ovName     = overrides[sp.name];
+      let best         = ovName ? (designByName[ovName] ?? null) : null;
+      const overridden = best !== null;
 
-      // 2. Fall back to nearest-in-proximity
+      // 2. Direct name lookup from ####-#### code reference
+      if (!best) {
+        const codeRef = extractCodeRef(sp.code);
+        best = codeRef ? (designByName[codeRef] ?? null) : null;
+      }
+
+      // 3. Fall back to nearest-in-proximity
       let bestDist = best ? dist2d(sp.northing, sp.easting, best.northing, best.easting) : Infinity;
       if (!best) {
         for (const dp of designPoints) {
@@ -63,6 +71,7 @@ export function matchPoints(surveyPoints, designPoints, toleranceFt = 50) {
         design_elev:       !isNaN(designElev) && designElev !== 0 ? best.elevation : '',
         cut_fill:          cutFill,
         match_dist:        best ? bestDist : null,
+        overridden,
         unmatched,
       };
     });

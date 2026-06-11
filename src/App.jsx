@@ -12,30 +12,42 @@ export default function App() {
   const [designFile, setDesignFile]       = useState('');
   const [selected, setSelected]           = useState(new Set());
   const [tolerance, setTolerance]         = useState(50);
+  const [overrides, setOverrides]         = useState({});
 
-  function rematch(survey, design, tol) {
-    const merged = design.length > 0 ? matchPoints(survey, design, tol) : survey;
+  function rematch(survey, design, tol, ov, keepSelection = false) {
+    const merged = design.length > 0 ? matchPoints(survey, design, tol, ov) : survey;
     setMergedPoints(merged);
-    setSelected(new Set(merged.map((_, i) => i)));
+    if (!keepSelection) setSelected(new Set(merged.map((_, i) => i)));
   }
 
   function handleSurveyLoaded(pts, name) {
     setSurveyPoints(pts);
     setSurveyFile(name);
-    rematch(pts, designPoints, tolerance);
+    setOverrides({});
+    rematch(pts, designPoints, tolerance, {});
   }
 
   function handleDesignLoaded(pts, name) {
     setDesignPoints(pts);
     setDesignFile(name);
-    rematch(surveyPoints, pts, tolerance);
+    setOverrides({});
+    rematch(surveyPoints, pts, tolerance, {});
   }
 
   function handleToleranceChange(val) {
     setTolerance(val);
     if (surveyPoints.length > 0 && designPoints.length > 0) {
-      rematch(surveyPoints, designPoints, val);
+      rematch(surveyPoints, designPoints, val, overrides);
     }
+  }
+
+  // Manually pin a field point to a design point (designName null = back to auto).
+  function handleReassign(fieldName, designName) {
+    const next = { ...overrides };
+    if (designName) next[fieldName] = designName;
+    else delete next[fieldName];
+    setOverrides(next);
+    rematch(surveyPoints, designPoints, tolerance, next, true);
   }
 
   function handleReset() {
@@ -45,6 +57,7 @@ export default function App() {
     setSurveyFile('');
     setDesignFile('');
     setSelected(new Set());
+    setOverrides({});
   }
 
   function toggleSelect(i) {
@@ -82,6 +95,7 @@ export default function App() {
         onSelectNone={selectNone}
         rawSurveyPoints={surveyPoints}
         rawDesignPoints={designPoints}
+        onReassign={handleReassign}
       />
       <Footer />
     </>

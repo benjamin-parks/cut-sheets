@@ -565,3 +565,40 @@ footer { background: var(--ink); color: rgba(247,245,240,0.40); padding: 1.5rem 
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
+
+/* ── REASSIGN ──────────────────────────────────────────────────────────────── */
+.dc--reassign { grid-column: span 2; }
+
+.reassign-sel {
+  width: 100%;
+  margin-top: 2px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.reassign-sel:focus {
+  outline: none;
+  border-color: var(--accent, #9e3d1a);
+}
+
+.dk-manual,
+.pt-manual-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d28d9;
+  background: #ede9fe;
+  border-radius: 4px;
+}
+
+.dk-manual { margin-left: 0.4rem; }
+.pt-manual-badge { flex-shrink: 0; }

@@ -67,7 +67,7 @@ export default function Tool({
   points, selected, surveyFile, designFile, hasDesign,
   tolerance, onToleranceChange,
   onSurveyLoaded, onDesignLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
-  rawSurveyPoints, rawDesignPoints,
+  rawSurveyPoints, rawDesignPoints, onReassign,
 }) {
   const [filter, setFilter]       = useState('');
   const [projectName, setProject] = useState('');
@@ -326,6 +326,8 @@ export default function Tool({
                       point={pt}
                       selected={selected.has(i)}
                       onToggle={() => onToggleSelect(i)}
+                      designPoints={rawDesignPoints}
+                      onReassign={onReassign}
                     />
                   );
                 })

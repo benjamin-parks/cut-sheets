@@ -11,10 +11,11 @@ function DetailCell({ label, val, highlight }) {
   );
 }
 
-export default function PointCard({ point: pt, selected, onToggle }) {
+export default function PointCard({ point: pt, selected, onToggle, designPoints = [], onReassign }) {
   const [open, setOpen] = useState(false);
 
-  const hasDesign = pt.design_elev !== undefined;
+  const hasDesign  = pt.design_elev !== undefined;
+  const canReassign = designPoints.length > 0 && onReassign;
 
   const obsFields = [
     { key: 'hz_angle',   label: 'Hz Angle'  },
@@ -41,6 +42,10 @@ export default function PointCard({ point: pt, selected, onToggle }) {
         <span className="pt-code">
           {pt.code || <span style={{ color: 'var(--ink-faint)' }}>—</span>}
         </span>
+
+        {pt.overridden && (
+          <span className="pt-manual-badge" title={`Manually assigned to ${pt.design_point_name}`}>manual</span>
+        )}
 
         {hasDesign && !pt.unmatched && pt.cut_fill !== null && (
           <span className={`pt-cutfill ${pt.cut_fill >= 0 ? 'cut' : 'fill'}`}>
@@ -84,11 +89,37 @@ export default function PointCard({ point: pt, selected, onToggle }) {
             )}
             <DetailCell label="Feature Code"     val={pt.code}        />
             {obsFields.map(f => <DetailCell key={f.key} label={f.label} val={pt[f.key]} />)}
-            {hasDesign && pt.design_point_name && (
-              <DetailCell label="Design Point" val={pt.design_point_name} />
-            )}
             {hasDesign && pt.match_dist !== null && (
               <DetailCell label="Dist to Design" val={`${pt.match_dist.toFixed(3)} ft`} />
+            )}
+            {canReassign && (
+              <div className="dc dc--reassign">
+                <span className="dk">
+                  Design Point
+                  {pt.overridden && <span className="dk-manual">manual</span>}
+                </span>
+                <select
+                  className="reassign-sel"
+                  value={pt.overridden ? pt.design_point_name : ''}
+                  onChange={e => onReassign(pt.name, e.target.value || null)}
+                >
+                  <option value="">
+                    {pt.overridden
+                      ? 'Auto'
+                      : pt.design_point_name
+                        ? `Auto — ${pt.design_point_name}`
+                        : 'Auto — no match'}
+                  </option>
+                  {designPoints.map(dp => (
+                    <option key={dp.name} value={dp.name}>
+                      {dp.name}{dp.code ? ` — ${dp.code}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {!canReassign && hasDesign && pt.design_point_name && (
+              <DetailCell label="Design Point" val={pt.design_point_name} />
             )}
           </div>
         </div>
