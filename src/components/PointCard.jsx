@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fmtCoord } from '../utils.js';
+import { fmtCoord, offsetDesc } from '../utils.js';
 
 function DetailCell({ label, val, highlight }) {
   const empty = val === null || val === undefined || val === '';
@@ -40,7 +40,7 @@ export default function PointCard({ point: pt, selected, onToggle, designPoints 
         />
         <span className="pt-name">{pt.name}</span>
         <span className="pt-code">
-          {pt.code || <span style={{ color: 'var(--ink-faint)' }}>—</span>}
+          {offsetDesc(pt) || <span style={{ color: 'var(--ink-faint)' }}>—</span>}
         </span>
 
         {pt.overridden && (

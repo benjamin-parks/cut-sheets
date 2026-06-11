@@ -146,7 +146,7 @@ export default function Tool({
   }
 
   const filtered = points.filter(p =>
-    !filter || (p.name + ' ' + p.code).toLowerCase().includes(filter.toLowerCase())
+    !filter || (p.name + ' ' + p.code + ' ' + offsetDesc(p)).toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
