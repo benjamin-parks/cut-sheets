@@ -16,7 +16,8 @@ export function printSheets(pts, { projectName, surveyor, units }) {
   const rows = printPts.map((pt, idx) => {
     const isCut    = pt.cut_fill !== null && pt.cut_fill >= 0;
     const isFill   = pt.cut_fill !== null && pt.cut_fill < 0;
-    const cfLabel  = pt.cut_fill !== null ? pt.cut_fill.toFixed(2) : '';
+    // Cuts shown negative (grade must come down), fills positive
+    const cfLabel  = pt.cut_fill !== null ? (-pt.cut_fill).toFixed(2) : '';
     const rowClass = pt.unmatched ? 'row-warn' : idx % 2 === 0 ? '' : 'row-alt';
 
     return `

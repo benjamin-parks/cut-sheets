@@ -119,7 +119,7 @@ export default function Tool({
 
     const rows = pts.map(pt => {
       const cf = pt.cut_fill !== null && pt.cut_fill !== undefined
-        ? pt.cut_fill.toFixed(2)
+        ? (-pt.cut_fill).toFixed(2)
         : '';
       return [
         pt.name, offsetDesc(pt),
