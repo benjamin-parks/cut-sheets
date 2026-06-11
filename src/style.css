@@ -478,8 +478,10 @@ footer { background: var(--ink); color: rgba(247,245,240,0.40); padding: 1.5rem 
   .row-alt .tc-design { background: #edddd5; }
 
   .tc-cf   { font-family: 'DM Mono', monospace; font-weight: 600; text-align: right; white-space: nowrap; }
-  .tc-cut  { color: #9e3d1a; }
-  .tc-fill { color: #1565c0; }
+  .tc-cut,
+  .tc-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tc-cut  { color: #7a1f1f; background: #f5c2c2 !important; }
+  .tc-fill { color: #1b5e20; background: #c5e8c8 !important; }
 
   .th-design { background: #9e3d1a !important; }
   .th-cf     { background: #7a2e10 !important; }
