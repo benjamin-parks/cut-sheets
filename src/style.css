@@ -634,3 +634,55 @@ footer { background: var(--ink); color: rgba(247,245,240,0.40); padding: 1.5rem 
 
 .dk-manual { margin-left: 0.4rem; }
 .pt-manual-badge { flex-shrink: 0; }
+
+/* ── SATELLITE TOGGLE ─────────────────────────────────────────────────────── */
+.county-sel {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  max-width: 150px;
+}
+
+.sat-toggle {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--ink-mid);
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sat-toggle:hover:not(:disabled) { border-color: var(--border-strong); color: var(--ink); }
+.sat-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+.sat-toggle.on {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.sat-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  padding: 2rem;
+  font-size: 0.85rem;
+  color: var(--ink-light);
+  text-align: center;
+}
+
+/* Leaflet tooltip matches app style */
+.leaflet-tooltip {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+}
