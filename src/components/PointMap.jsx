@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, Suspense, lazy } from 'react';
 import { offsetDesc } from '../utils.js';
+import { MN_COUNTIES } from '../mnCounties.js';
+
+// Leaflet + proj4 only load when the user turns satellite on.
+const SatelliteMap = lazy(() => import('./SatelliteMap.jsx'));
 
 const PAD = 20;
 const PT_R = 5;
@@ -72,6 +76,14 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
   const [size, setSize]       = useState({ w: 800, h: 500 });
   const [hovered, setHovered] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [satOn, setSatOn]     = useState(false);
+  const [county, setCounty]   = useState(() => localStorage.getItem('fieldcut-county') || '');
+
+  function handleCountyChange(val) {
+    setCounty(val);
+    localStorage.setItem('fieldcut-county', val);
+    if (!val) setSatOn(false);
+  }
 
   // Viewport: pan offset + zoom. Applied on top of the base transform.
   const vp = useRef({ ox: 0, oy: 0, zoom: 1 });
@@ -250,8 +262,40 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
         <span className="map-legend-dot" style={{ background: '#3b82f6' }} /> Staked
         <span className="map-legend-dot" style={{ background: '#ef4444', marginLeft: '1rem' }} /> Computed
         <span className="map-legend-arrow" /> Relationship
-        <span style={{ marginLeft: 'auto', opacity: 0.45, fontSize: '0.7rem' }}>Scroll to zoom · drag to pan · double-click to reset</span>
+        <span style={{ marginLeft: 'auto' }} />
+        <select
+          className="county-sel"
+          value={county}
+          onChange={e => handleCountyChange(e.target.value)}
+          title="MN county coordinate system (Trimble zone)"
+        >
+          <option value="">County…</option>
+          {Object.keys(MN_COUNTIES).map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button
+          className={`sat-toggle${satOn ? ' on' : ''}`}
+          disabled={!county}
+          title={county ? 'Toggle satellite imagery' : 'Select your county first'}
+          onClick={() => setSatOn(s => !s)}
+        >
+          Satellite
+        </button>
+        {!satOn && (
+          <span style={{ opacity: 0.45, fontSize: '0.7rem' }}>Scroll to zoom · drag to pan · double-click to reset</span>
+        )}
       </div>
+
+      {satOn && county ? (
+        <div style={{ width: '100%', height: size.h }}>
+          <Suspense fallback={<div className="sat-error">Loading satellite view…</div>}>
+            <SatelliteMap
+              mergedPoints={mergedPoints}
+              designPoints={designPoints}
+              projDef={MN_COUNTIES[county]}
+            />
+          </Suspense>
+        </div>
+      ) : (
       <canvas
         ref={canvasRef}
         style={{ width: '100%', display: 'block', cursor: drag.current ? 'grabbing' : hovered ? 'crosshair' : 'grab' }}
@@ -261,7 +305,8 @@ export default function PointMap({ surveyPoints, designPoints, mergedPoints }) {
         onMouseLeave={() => { drag.current = null; setHovered(null); }}
         onDoubleClick={handleDblClick}
       />
-      {hovered && (
+      )}
+      {hovered && !satOn && (
         <div className="map-tooltip" style={{ left: mousePos.x + 14, top: mousePos.y - 10, position: 'fixed' }}>
           <strong>{hovered.name}</strong>
           {hovered.code && <> · {hovered.code}</>}
