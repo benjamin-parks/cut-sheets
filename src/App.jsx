@@ -71,10 +71,8 @@ export default function App() {
   function selectAll()  { setSelected(new Set(mergedPoints.map((_, i) => i))); }
   function selectNone() { setSelected(new Set()); }
 
-  // Display points: merged if both loaded, else whichever is loaded
-  const displayPoints = mergedPoints.length > 0 ? mergedPoints
-    : surveyPoints.length > 0 ? surveyPoints
-    : [];
+  // Both files are required — cut/fill is meaningless without design elevations.
+  const displayPoints = surveyPoints.length > 0 && designPoints.length > 0 ? mergedPoints : [];
 
   return (
     <>

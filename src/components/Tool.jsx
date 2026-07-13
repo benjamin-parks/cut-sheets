@@ -166,12 +166,24 @@ export default function Tool({
             hint="Trimble Access export — Point, Northing, Easting, Elevation, Description"
           />
           <DropZone
-            label="Drop design CSV (optional)"
+            label="Drop design CSV"
             fileName={designFile}
             onFile={handleDesignFile}
             hint="Design elevations — matched by description reference or nearest N/E within the search radius"
           />
         </div>
+
+        {/* Prompt for the missing file */}
+        {!!surveyFile !== !!designFile && (
+          <div className="match-warning">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2L14.9 14H1.1L8 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+              <line x1="8" y1="7" x2="8" y2="10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              <circle cx="8" cy="12" r="0.6" fill="currentColor"/>
+            </svg>
+            Load the {surveyFile ? 'design' : 'survey'} CSV as well — both files are required to compute cuts.
+          </div>
+        )}
 
         {/* Unmatched warning */}
         {hasDesign && unmatchedCount > 0 && (
