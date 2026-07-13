@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { parseCSV } from '../csv.js';
 import { printSheets } from '../print.js';
+import { printMap } from '../mapPrint.js';
 import { offsetDesc } from '../utils.js';
 import PointCard from './PointCard.jsx';
 import PointMap from './PointMap.jsx';
@@ -138,6 +139,12 @@ export default function Tool({
     a.download = `${(projectName || 'cut-sheet').replace(/\s+/g, '_')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleSaveMap() {
+    const pts = points.filter((_, i) => selected.has(i));
+    if (pts.length === 0) { alert('No points selected.'); return; }
+    printMap(pts, rawDesignPoints, { projectName: projectName || 'Untitled Survey', surveyor });
   }
 
   function handleReset() {
@@ -313,6 +320,14 @@ export default function Tool({
                 <path d="M3 12h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
               Save CSV
+            </button>
+            <button className="btn-save" onClick={handleSaveMap}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M1.5 4l4-2 5 2 4-2v10l-4 2-5-2-4 2V4z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                <line x1="5.5" y1="2" x2="5.5" y2="12" stroke="currentColor" strokeWidth="1.2"/>
+                <line x1="10.5" y1="4" x2="10.5" y2="14" stroke="currentColor" strokeWidth="1.2"/>
+              </svg>
+              Save Map
             </button>
             <button className="btn-print" onClick={handlePrint}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
