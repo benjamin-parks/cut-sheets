@@ -23,7 +23,7 @@ const TYPES = {
   '.txt':  'text/plain',
 };
 
-const server = createServer(async (req, res) => {
+const handler = async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
     // Prevent path traversal; strip leading slashes after normalize
@@ -49,8 +49,13 @@ const server = createServer(async (req, res) => {
     res.writeHead(500, { 'Content-Type': 'text/plain' });
     res.end('Internal server error');
   }
-});
+};
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Serving dist/ on 0.0.0.0:${PORT}`);
-});
+// The hosting platform doesn't tell us which port its proxy targets, so
+// listen on every common candidate. Ports that can't bind are skipped.
+const CANDIDATES = [...new Set([PORT, 80, 3000, 4173, 5000, 8000, 8080])];
+for (const port of CANDIDATES) {
+  const server = createServer(handler);
+  server.on('error', err => console.log(`Port ${port} unavailable (${err.code})`));
+  server.listen(port, '0.0.0.0', () => console.log(`Serving dist/ on 0.0.0.0:${port}`));
+}
