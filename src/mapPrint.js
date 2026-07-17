@@ -177,7 +177,7 @@ export async function printMap(mergedPoints, designPoints) {
   printArea.innerHTML =
     `<style>@media print {
        @page { size: letter portrait; margin: 0; }
-       .map-page { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; }
+       .map-page { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; padding: 0 0.4in; box-sizing: border-box; background: #fff; }
        .map-print-img { max-height: 100% !important; max-width: 100% !important; }
      }</style>` +
     pages
