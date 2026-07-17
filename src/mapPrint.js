@@ -8,50 +8,11 @@ const isDotVisible = mp =>
 
 // Letter portrait inside 0.5in margins at ~200dpi.
 const PAGE_W = 1500;
-const PAGE_H = 1980;
-const PAD_PX = 60;
+const PAGE_H = 1880;
+const PAD_PX = 70;
+const DOT_R = 9;
 
-/* ── Page 2: plain points (SVG) ────────────────────────────────────────────── */
-
-function buildPlainSvg(mergedPoints, designPoints) {
-  const W = 720, H = 950, PAD = 30, R = 4;
-
-  const allN = [...mergedPoints.map(p => parseFloat(p.northing)), ...designPoints.map(p => parseFloat(p.northing))].filter(isFinite);
-  const allE = [...mergedPoints.map(p => parseFloat(p.easting)),  ...designPoints.map(p => parseFloat(p.easting))].filter(isFinite);
-  if (!allN.length) return null;
-
-  const minN = Math.min(...allN), maxN = Math.max(...allN);
-  const minE = Math.min(...allE), maxE = Math.max(...allE);
-  const scale = Math.min((W - PAD * 2) / ((maxE - minE) || 1), (H - PAD * 2) / ((maxN - minN) || 1));
-  const offX = PAD + (W - PAD * 2 - (maxE - minE) * scale) / 2;
-  const offY = PAD + (H - PAD * 2 - (maxN - minN) * scale) / 2;
-  const toXY = (n, e) => ({
-    x: offX + (parseFloat(e) - minE) * scale,
-    y: offY + (maxN - parseFloat(n)) * scale,
-  });
-
-  const parts = [];
-  for (const mp of mergedPoints) {
-    if (!mp.design_point_name || mp.unmatched || !isDotVisible(mp)) continue;
-    const dp = designPoints.find(d => d.name === mp.design_point_name);
-    if (!dp) continue;
-    const a = toXY(mp.northing, mp.easting);
-    const b = toXY(dp.northing, dp.easting);
-    parts.push(`<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="#6366f1" stroke-width="0.9"/>`);
-  }
-  for (const dp of designPoints) {
-    const { x, y } = toXY(dp.northing, dp.easting);
-    parts.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${R}" fill="#ef4444" stroke="#fff" stroke-width="0.8"/>`);
-  }
-  for (const mp of mergedPoints.filter(isDotVisible)) {
-    const { x, y } = toXY(mp.northing, mp.easting);
-    parts.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${R}" fill="#3b82f6" stroke="#fff" stroke-width="0.8"/>`);
-  }
-
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="map-print-svg">${parts.join('')}</svg>`;
-}
-
-/* ── Page 1: points over satellite tiles (canvas → JPEG) ───────────────────── */
+/* ── Shared transform ──────────────────────────────────────────────────────── */
 
 // Web-mercator normalized [0,1] coordinates.
 function mercator(lat, lng) {
@@ -61,77 +22,49 @@ function mercator(lat, lng) {
   return { x, y };
 }
 
-function loadTile(z, x, y) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
-  });
-}
-
-async function buildSatelliteImage(mergedPoints, designPoints, projDef) {
+// County N/E → page pixels, continuous scale so the job fills the page.
+// Both pages use this same transform, so their scales are identical.
+function buildTransform(mergedPoints, designPoints, projDef) {
   const conv = proj4(projDef, 'EPSG:4326');
-  const toLL = (n, e) => {
+  const toMerc = (n, e) => {
     const [lng, lat] = conv.forward([parseFloat(e), parseFloat(n)]);
-    return { lat, lng };
+    return mercator(lat, lng);
   };
 
   const pts = [];
   for (const p of [...mergedPoints, ...designPoints]) {
     const n = parseFloat(p.northing), e = parseFloat(p.easting);
-    if (isFinite(n) && isFinite(e)) pts.push(mercatorOf(toLL(n, e)));
+    if (isFinite(n) && isFinite(e)) pts.push(toMerc(n, e));
   }
-  function mercatorOf({ lat, lng }) { return mercator(lat, lng); }
-  if (!pts.length) throw new Error('no points');
+  if (!pts.length) return null;
 
   const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x));
   const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y));
 
-  // Highest zoom (≤19, Esri native max) where the bbox fits the page area.
-  let z = 19;
-  for (; z > 1; z--) {
-    const world = 256 * 2 ** z;
-    if ((maxX - minX) * world <= PAGE_W - PAD_PX * 2 && (maxY - minY) * world <= PAGE_H - PAD_PX * 2) break;
-  }
-  const world = 256 * 2 ** z;
+  // Pixels per mercator unit — continuous, fills the page.
+  const worldScale = Math.min(
+    (PAGE_W - PAD_PX * 2) / ((maxX - minX) || 1e-9),
+    (PAGE_H - PAD_PX * 2) / ((maxY - minY) || 1e-9)
+  );
 
-  // Center bbox on the page.
   const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-  const originX = cx * world - PAGE_W / 2;   // world px at canvas (0,0)
-  const originY = cy * world - PAGE_H / 2;
+  const originX = cx * worldScale - PAGE_W / 2;
+  const originY = cy * worldScale - PAGE_H / 2;
 
-  const canvas = document.createElement('canvas');
-  canvas.width = PAGE_W;
-  canvas.height = PAGE_H;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#e8e6e1';
-  ctx.fillRect(0, 0, PAGE_W, PAGE_H);
-
-  const t0x = Math.floor(originX / 256), t1x = Math.floor((originX + PAGE_W) / 256);
-  const t0y = Math.floor(originY / 256), t1y = Math.floor((originY + PAGE_H) / 256);
-  const maxTile = 2 ** z - 1;
-
-  const jobs = [];
-  for (let tx = t0x; tx <= t1x; tx++) {
-    for (let ty = t0y; ty <= t1y; ty++) {
-      if (tx < 0 || ty < 0 || tx > maxTile || ty > maxTile) continue;
-      jobs.push(
-        loadTile(z, tx, ty)
-          .then(img => ctx.drawImage(img, tx * 256 - originX, ty * 256 - originY))
-          .catch(() => {}) // missing tiles just stay grey
-      );
-    }
-  }
-  await Promise.all(jobs);
-
-  const toPx = p => {
-    const m = mercatorOf(toLL(p.northing, p.easting));
-    return { x: m.x * world - originX, y: m.y * world - originY };
+  return {
+    worldScale,
+    originX,
+    originY,
+    toPx: p => {
+      const m = toMerc(p.northing, p.easting);
+      return { x: m.x * worldScale - originX, y: m.y * worldScale - originY };
+    },
   };
+}
 
-  // Match lines
+/* ── Drawing ───────────────────────────────────────────────────────────────── */
+
+function drawPoints(ctx, mergedPoints, designPoints, toPx) {
   ctx.strokeStyle = '#818cf8';
   ctx.lineWidth = 3;
   for (const mp of mergedPoints) {
@@ -145,7 +78,7 @@ async function buildSatelliteImage(mergedPoints, designPoints, projDef) {
   const dot = (p, fill) => {
     const { x, y } = toPx(p);
     ctx.beginPath();
-    ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.arc(x, y, DOT_R, 0, Math.PI * 2);
     ctx.fillStyle = fill;
     ctx.fill();
     ctx.strokeStyle = '#fff';
@@ -154,30 +87,84 @@ async function buildSatelliteImage(mergedPoints, designPoints, projDef) {
   };
   for (const dp of designPoints) dot(dp, '#ef4444');
   for (const mp of mergedPoints.filter(isDotVisible)) dot(mp, '#3b82f6');
+}
 
-  return canvas.toDataURL('image/jpeg', 0.92);
+function loadTile(z, x, y) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+  });
+}
+
+async function drawTiles(ctx, xf) {
+  const { worldScale, originX, originY } = xf;
+
+  // Native tile zoom closest above our continuous scale, capped at Esri max.
+  const z = Math.max(1, Math.min(19, Math.ceil(Math.log2(worldScale / 256))));
+  const tilePx = worldScale / 2 ** z; // on-canvas size of one 256px tile
+
+  const t0x = Math.floor(originX / tilePx), t1x = Math.floor((originX + PAGE_W) / tilePx);
+  const t0y = Math.floor(originY / tilePx), t1y = Math.floor((originY + PAGE_H) / tilePx);
+  const maxTile = 2 ** z - 1;
+
+  const jobs = [];
+  for (let tx = t0x; tx <= t1x; tx++) {
+    for (let ty = t0y; ty <= t1y; ty++) {
+      if (tx < 0 || ty < 0 || tx > maxTile || ty > maxTile) continue;
+      jobs.push(
+        loadTile(z, tx, ty)
+          .then(img => ctx.drawImage(img, tx * tilePx - originX, ty * tilePx - originY, tilePx, tilePx))
+          .catch(() => {}) // missing tiles just stay grey
+      );
+    }
+  }
+  await Promise.all(jobs);
+}
+
+function makeCanvas(bg) {
+  const canvas = document.createElement('canvas');
+  canvas.width = PAGE_W;
+  canvas.height = PAGE_H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, PAGE_W, PAGE_H);
+  return { canvas, ctx };
 }
 
 /* ── Entry point ───────────────────────────────────────────────────────────── */
 
 export async function printMap(mergedPoints, designPoints) {
-  const plainSvg = buildPlainSvg(mergedPoints, designPoints);
-  if (!plainSvg) { alert('No points to map.'); return; }
-
   const county = localStorage.getItem('fieldcut-county') || '';
   const projDef = MN_COUNTIES[county];
-
-  let satPage = '';
-  if (projDef) {
-    try {
-      const dataUrl = await buildSatelliteImage(mergedPoints, designPoints, projDef);
-      satPage = `<div class="map-page"><img class="map-print-img" src="${dataUrl}" alt=""/></div>`;
-    } catch {
-      alert('Satellite imagery could not be loaded — saving the points-only page.');
-    }
-  } else {
-    alert('Select a county on the map to include the satellite page — saving the points-only page.');
+  if (!projDef) {
+    alert('Select a county on the map first — the exhibit uses it to place points on imagery.');
+    return;
   }
+
+  let xf;
+  try {
+    xf = buildTransform(mergedPoints, designPoints, projDef);
+  } catch {
+    xf = null;
+  }
+  if (!xf) { alert('Could not convert coordinates with the selected county projection.'); return; }
+
+  // Page 1: satellite. Page 2: identical transform on white.
+  const pages = [];
+
+  const sat = makeCanvas('#e8e6e1');
+  try {
+    await drawTiles(sat.ctx, xf);
+  } catch { /* tiles stay grey */ }
+  drawPoints(sat.ctx, mergedPoints, designPoints, xf.toPx);
+  pages.push(sat.canvas.toDataURL('image/jpeg', 0.92));
+
+  const plain = makeCanvas('#ffffff');
+  drawPoints(plain.ctx, mergedPoints, designPoints, xf.toPx);
+  pages.push(plain.canvas.toDataURL('image/png'));
 
   let printArea = document.getElementById('print-area');
   if (!printArea) {
@@ -185,10 +172,11 @@ export async function printMap(mergedPoints, designPoints) {
     printArea.id = 'print-area';
     document.body.appendChild(printArea);
   }
-  printArea.innerHTML = `${satPage}<div class="map-page">${plainSvg}</div>`;
+  printArea.innerHTML = pages
+    .map(src => `<div class="map-page"><img class="map-print-img" src="${src}" alt=""/></div>`)
+    .join('');
 
-  // Ensure the satellite image is fully decoded before the print dialog
-  // snapshots the page — otherwise page 1 prints blank.
+  // Ensure images are fully decoded before the print dialog snapshots the page.
   await Promise.all(
     [...printArea.querySelectorAll('img')].map(img => img.decode().catch(() => {}))
   );
