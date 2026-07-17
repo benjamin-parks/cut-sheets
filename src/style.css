@@ -406,9 +406,13 @@ footer { background: var(--ink); color: rgba(247,245,240,0.40); padding: 1.5rem 
 
   .map-print-svg,
   .map-print-img {
+    display: block;
     width: 100%;
     height: auto;
-    display: block;
+    max-height: 9.4in; /* stay inside the printable area so the page-break
+                          logic never pushes the map to a blank second page */
+    object-fit: contain;
+    margin: 0 auto;
   }
 
   .pt-table-wrap {
