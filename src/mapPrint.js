@@ -186,5 +186,11 @@ export async function printMap(mergedPoints, designPoints) {
     document.body.appendChild(printArea);
   }
   printArea.innerHTML = `${satPage}<div class="map-page">${plainSvg}</div>`;
+
+  // Ensure the satellite image is fully decoded before the print dialog
+  // snapshots the page — otherwise page 1 prints blank.
+  await Promise.all(
+    [...printArea.querySelectorAll('img')].map(img => img.decode().catch(() => {}))
+  );
   window.print();
 }
