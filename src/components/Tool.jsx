@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { parseCSV } from '../csv.js';
 import { printSheets } from '../print.js';
-import { printMap } from '../mapPrint.js';
 import { offsetDesc } from '../utils.js';
 import PointCard from './PointCard.jsx';
 import PointMap from './PointMap.jsx';
@@ -141,10 +140,11 @@ export default function Tool({
     URL.revokeObjectURL(url);
   }
 
-  function handleSaveMap() {
+  async function handleSaveMap() {
     const pts = points.filter((_, i) => selected.has(i));
     if (pts.length === 0) { alert('No points selected.'); return; }
-    printMap(pts, rawDesignPoints, { projectName: projectName || 'Untitled Survey', surveyor });
+    const { printMap } = await import('../mapPrint.js');
+    printMap(pts, rawDesignPoints);
   }
 
   function handleReset() {

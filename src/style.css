@@ -398,31 +398,14 @@ footer { background: var(--ink); color: rgba(247,245,240,0.40); padding: 1.5rem 
 
   @page { size: letter portrait; margin: 0.5in; }
 
-  .map-print-wrap {
-    font-family: 'DM Sans', system-ui, sans-serif;
+  .map-page {
+    page-break-after: always;
     page-break-inside: avoid;
   }
+  .map-page:last-child { page-break-after: auto; }
 
-  .map-print-legend {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 9px;
-    color: #4a4a44;
-    margin-bottom: 6px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .mpl-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-left: 8px;
-  }
-  .mpl-dot:first-child { margin-left: 0; }
-
-  .map-print-svg {
+  .map-print-svg,
+  .map-print-img {
     width: 100%;
     height: auto;
     display: block;
