@@ -172,9 +172,17 @@ export async function printMap(mergedPoints, designPoints) {
     printArea.id = 'print-area';
     document.body.appendChild(printArea);
   }
-  printArea.innerHTML = pages
-    .map(src => `<div class="map-page"><img class="map-print-img" src="${src}" alt=""/></div>`)
-    .join('');
+  // Zero page margins: the browser then suppresses its own date/URL
+  // header and footer, and the border whitespace is baked into the canvas.
+  printArea.innerHTML =
+    `<style>@media print {
+       @page { size: letter portrait; margin: 0; }
+       .map-page { width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; }
+       .map-print-img { max-height: 100% !important; max-width: 100% !important; }
+     }</style>` +
+    pages
+      .map(src => `<div class="map-page"><img class="map-print-img" src="${src}" alt=""/></div>`)
+      .join('');
 
   // Ensure images are fully decoded before the print dialog snapshots the page.
   await Promise.all(
