@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { parseCSV } from '../csv.js';
 import { printSheets } from '../print.js';
-import { offsetDesc } from '../utils.js';
+import { offsetDesc, sortForOutput } from '../utils.js';
 import PointCard from './PointCard.jsx';
 import PointMap from './PointMap.jsx';
 
@@ -101,6 +101,7 @@ export default function Tool({
 
     const hasDesignData = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
     if (hasDesignData) pts = pts.filter(p => p.design_elev !== undefined && p.design_elev !== '' && parseFloat(p.design_elev) !== 0);
+    pts = sortForOutput(pts);
     const hasDesignPt   = hasDesignData && pts.some(p => p.design_point_name);
 
     const headers = [

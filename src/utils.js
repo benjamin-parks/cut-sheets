@@ -24,6 +24,32 @@ export function offsetDesc(pt) {
   return ft === 0 ? to : `${ft}' os to ${to}`;
 }
 
+// Order rows for the printed sheet and the saved CSV: by computed point
+// (numeric when the name is a number), then nearest offset first.
+export function sortForOutput(pts) {
+  const key = p => {
+    const raw = (p.design_point_name || '').trim();
+    const num = parseFloat(raw);
+    return { raw, num, isNum: raw !== '' && !isNaN(num) };
+  };
+
+  return [...pts].sort((a, b) => {
+    const ka = key(a), kb = key(b);
+
+    // Unmatched points sink to the bottom.
+    if (!ka.raw !== !kb.raw) return ka.raw ? -1 : 1;
+
+    if (ka.raw !== kb.raw) {
+      if (ka.isNum && kb.isNum) return ka.num - kb.num;
+      if (ka.isNum !== kb.isNum) return ka.isNum ? -1 : 1;  // numbers before names
+      return ka.raw.localeCompare(kb.raw, undefined, { numeric: true });
+    }
+
+    // Same computed point — nearest offset first.
+    return (a.match_dist ?? Infinity) - (b.match_dist ?? Infinity);
+  });
+}
+
 export function fmtPrint(v) {
   if (!v || v === '') return '—';
   const n = parseFloat(v);
