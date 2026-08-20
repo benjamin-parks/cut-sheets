@@ -1,4 +1,4 @@
-import { esc, fmtPrint, offsetDesc } from './utils.js';
+import { esc, fmtPrint, offsetDesc, sortForOutput } from './utils.js';
 
 export function printSheets(pts, { projectName, surveyor, units }) {
   const date = new Date().toLocaleDateString('en-US', {
@@ -8,10 +8,13 @@ export function printSheets(pts, { projectName, surveyor, units }) {
   const hasDesign  = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
   const hasDesignPt = hasDesign && pts.some(p => p.design_point_name);
 
-  // Exclude rows with no valid proposed elevation
-  const printPts = hasDesign
-    ? pts.filter(p => p.design_elev !== undefined && p.design_elev !== '' && parseFloat(p.design_elev) !== 0)
-    : pts;
+  // Exclude rows with no valid proposed elevation, then order by computed
+  // point with the nearest offset first.
+  const printPts = sortForOutput(
+    hasDesign
+      ? pts.filter(p => p.design_elev !== undefined && p.design_elev !== '' && parseFloat(p.design_elev) !== 0)
+      : pts
+  );
 
   const rows = printPts.map((pt, idx) => {
     const isCut    = pt.cut_fill !== null && pt.cut_fill >= 0;
