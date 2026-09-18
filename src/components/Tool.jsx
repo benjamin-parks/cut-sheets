@@ -73,7 +73,7 @@ export default function Tool({
   points, selected, surveyFile, designFile, hasDesign,
   tolerance, onToleranceChange,
   onSurveyLoaded, onDesignLoaded, onReset, onToggleSelect, onSelectAll, onSelectNone,
-  rawSurveyPoints, rawDesignPoints, onReassign,
+  onDeselectUnmatched, rawSurveyPoints, rawDesignPoints, onReassign,
 }) {
   const [filter, setFilter]       = useState('');
   const [projectName, setProject] = useState('');
@@ -82,6 +82,11 @@ export default function Tool({
 
   const hasPoints = points.length > 0;
   const unmatchedCount = points.filter(p => p.unmatched).length;
+
+  // The map and both exports work from the selection, so it drives the extent.
+  const selectedPoints = points.filter((_, i) => selected.has(i));
+  // Counted within the selection so the button retires once they are all gone.
+  const selectedUnmatched = selectedPoints.filter(p => p.unmatched).length;
 
   function handleSurveyFile(text, name) {
     const pts = parseCSV(text, coordOrder);
@@ -94,13 +99,13 @@ export default function Tool({
   }
 
   function handlePrint() {
-    const pts = points.filter((_, i) => selected.has(i));
+    const pts = selectedPoints;
     if (pts.length === 0) { alert('No points selected.'); return; }
     printSheets(pts, { projectName: projectName || 'Untitled Survey', surveyor, units: UNITS_LABEL });
   }
 
   function handleSaveCSV() {
-    let pts = points.filter((_, i) => selected.has(i));
+    let pts = selectedPoints;
     if (pts.length === 0) { alert('No points selected.'); return; }
 
     const hasDesignData = pts.some(p => p.design_elev !== undefined && p.design_elev !== '');
@@ -146,7 +151,7 @@ export default function Tool({
   }
 
   async function handleSaveMap() {
-    const pts = points.filter((_, i) => selected.has(i));
+    const pts = selectedPoints;
     if (pts.length === 0) { alert('No points selected.'); return; }
     const { printMap } = await import('../mapPrint.js');
     printMap(pts, rawDesignPoints);
@@ -284,6 +289,15 @@ export default function Tool({
             <div className="sb-actions">
               <button className="btn-sm" onClick={onSelectAll}>Select all</button>
               <button className="btn-sm" onClick={onSelectNone}>Clear</button>
+              {selectedUnmatched > 0 && (
+                <button
+                  className="btn-sm btn-sm--warn"
+                  onClick={onDeselectUnmatched}
+                  title="Remove field points with no design match from the selection"
+                >
+                  Deselect {selectedUnmatched} unmatched
+                </button>
+              )}
               <button className="btn-sm" onClick={handleReset}>↩ New file</button>
             </div>
           </div>
@@ -291,11 +305,15 @@ export default function Tool({
 
         {/* Map */}
         {hasPoints && hasDesign && rawSurveyPoints.length > 0 && (
-          <PointMap
-            surveyPoints={rawSurveyPoints}
-            designPoints={rawDesignPoints}
-            mergedPoints={points}
-          />
+          selectedPoints.length > 0 ? (
+            <PointMap
+              surveyPoints={rawSurveyPoints}
+              designPoints={rawDesignPoints}
+              mergedPoints={selectedPoints}
+            />
+          ) : (
+            <div className="map-empty">No points selected — the map follows your selection.</div>
+          )
         )}
 
         {/* Search + print */}

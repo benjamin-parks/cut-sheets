@@ -71,6 +71,13 @@ export default function App() {
   function selectAll()  { setSelected(new Set(mergedPoints.map((_, i) => i))); }
   function selectNone() { setSelected(new Set()); }
 
+  // Drop field points that found no design match. Crews often stake unrelated
+  // services mid-job; those strays carry no cut/fill and only stretch the map
+  // extent away from the area the sheet is about.
+  function deselectUnmatched() {
+    setSelected(prev => new Set([...prev].filter(i => !mergedPoints[i]?.unmatched)));
+  }
+
   // Both files are required — cut/fill is meaningless without design elevations.
   const displayPoints = surveyPoints.length > 0 && designPoints.length > 0 ? mergedPoints : [];
 
@@ -91,6 +98,7 @@ export default function App() {
         onToggleSelect={toggleSelect}
         onSelectAll={selectAll}
         onSelectNone={selectNone}
+        onDeselectUnmatched={deselectUnmatched}
         rawSurveyPoints={surveyPoints}
         rawDesignPoints={designPoints}
         onReassign={handleReassign}

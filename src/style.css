@@ -320,6 +320,8 @@ nav a:hover { color: var(--ink); }
 .tolerance-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--paper); box-shadow: 0 1px 4px rgba(200,82,42,0.35); cursor: pointer; }
 .slider-ticks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; color: var(--ink-faint); margin-top: 2px; }
 
+.map-empty { margin-top: 1.5rem; padding: 2rem; text-align: center; font-size: 0.85rem; color: var(--ink-light); background: var(--paper-warm); border: 1px dashed var(--border-strong); border-radius: var(--radius); }
+
 /* ── SUMMARY BAR ───────────────────────────────────────────────────────────── */
 #summary-bar { margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; padding: 10px 14px; background: var(--paper-warm); border: 1px solid var(--border); border-radius: var(--radius); flex-wrap: wrap; }
 .sb-file { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 0.78rem; color: var(--ink-mid); font-weight: 500; }
@@ -329,6 +331,8 @@ nav a:hover { color: var(--ink); }
 .sb-actions { display: flex; gap: 6px; }
 .btn-sm { font-family: var(--sans); font-size: 0.78rem; color: var(--ink-mid); background: var(--paper); border: 1px solid var(--border-strong); border-radius: 100px; padding: 5px 13px; cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; white-space: nowrap; }
 .btn-sm:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.btn-sm--warn { color: #8a6d00; background: #fffdf2; border-color: #e8d48a; }
+.btn-sm--warn:hover { background: #8a6d00; color: var(--paper); border-color: #8a6d00; }
 
 /* ── SEARCH BAR ────────────────────────────────────────────────────────────── */
 #search-bar { margin-top: 1rem; display: flex; align-items: center; gap: 10px; }
