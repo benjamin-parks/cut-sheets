@@ -5,6 +5,12 @@ import { offsetDesc, sortForOutput } from '../utils.js';
 import PointCard from './PointCard.jsx';
 import PointMap from './PointMap.jsx';
 
+// The MN county coordinate systems this tool targets are all +units=us-ft, and
+// the search radius, dot suppression and offset descriptors are all in feet.
+// Offering other units would only mislabel those numbers, so feet is the only
+// supported unit and the sheet records it.
+const UNITS_LABEL = 'US Survey Feet';
+
 function DropZone({ label, fileName, onFile, hint }) {
   const [over, setOver] = useState(false);
   const ref = useRef(null);
@@ -72,7 +78,6 @@ export default function Tool({
   const [filter, setFilter]       = useState('');
   const [projectName, setProject] = useState('');
   const [surveyor, setSurveyor]   = useState('');
-  const [units, setUnits]         = useState('ft');
   const [coordOrder, setCoord]    = useState('nez');
 
   const hasPoints = points.length > 0;
@@ -89,10 +94,9 @@ export default function Tool({
   }
 
   function handlePrint() {
-    const unitsLabel = { ft: 'US Survey Feet', m: 'Meters', intft: 'International Feet' }[units];
     const pts = points.filter((_, i) => selected.has(i));
     if (pts.length === 0) { alert('No points selected.'); return; }
-    printSheets(pts, { projectName: projectName || 'Untitled Survey', surveyor, units: unitsLabel });
+    printSheets(pts, { projectName: projectName || 'Untitled Survey', surveyor, units: UNITS_LABEL });
   }
 
   function handleSaveCSV() {
@@ -226,12 +230,8 @@ export default function Tool({
                 />
               </div>
               <div className="field-group">
-                <label htmlFor="unit-sel">Units</label>
-                <select id="unit-sel" value={units} onChange={e => setUnits(e.target.value)}>
-                  <option value="ft">US Survey Feet</option>
-                  <option value="m">Meters</option>
-                  <option value="intft">International Feet</option>
-                </select>
+                <label id="unit-label">Units</label>
+                <div className="field-static" aria-labelledby="unit-label">{UNITS_LABEL}</div>
               </div>
               <div className="field-group">
                 <label htmlFor="coord-order">Coordinate Order</label>

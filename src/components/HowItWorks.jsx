@@ -7,7 +7,7 @@ const STEPS = [
   {
     num: '02',
     title: 'Upload & configure',
-    body: 'Drop the file in, set your project name, surveyor, and units. FieldCut auto-detects columns and shows every point instantly.',
+    body: 'Drop the file in and set your project name and surveyor. FieldCut auto-detects columns and shows every point instantly.',
   },
   {
     num: '03',

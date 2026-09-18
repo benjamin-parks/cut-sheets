@@ -310,6 +310,7 @@ nav a:hover { color: var(--ink); }
 .field-group input[type=text],
 .field-group select { font-family: var(--sans); font-size: 0.9rem; color: var(--ink); background: var(--paper); border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 9px 12px; height: 40px; width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s; appearance: none; -webkit-appearance: none; }
 .field-group select { background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%238a8a80' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+.field-static { font-family: var(--sans); font-size: 0.9rem; color: var(--ink-mid); background: var(--paper-warm); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 12px; height: 40px; width: 100%; display: flex; align-items: center; }
 .field-group input:focus, .field-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(200,82,42,0.10); }
 .field-group--slider { grid-column: 1 / -1; }
 .field-group--slider label { display: flex; align-items: center; justify-content: space-between; }
