@@ -22,19 +22,27 @@ function mercator(lat, lng) {
   return { x, y };
 }
 
-// County N/E → page pixels, continuous scale so the job fills the page.
-// Both pages use this same transform, so their scales are identical.
-function buildTransform(mergedPoints, designPoints, projDef) {
+// County N/E → web-mercator units. Needed to line points up with imagery.
+function mercatorWorld(projDef) {
   const conv = proj4(projDef, 'EPSG:4326');
-  const toMerc = (n, e) => {
-    const [lng, lat] = conv.forward([parseFloat(e), parseFloat(n)]);
+  return (n, e) => {
+    const [lng, lat] = conv.forward([e, n]);
     return mercator(lat, lng);
   };
+}
 
+// County N/E straight to page axes (north up), for when no county is selected.
+// Imagery can't be placed this way, but the points' relative geometry — all the
+// plain page shows — is exact.
+const planarWorld = (n, e) => ({ x: e, y: -n });
+
+// World units → page pixels, continuous scale so the job fills the page.
+// Every page uses this same transform, so their scales are identical.
+function buildTransform(mergedPoints, designPoints, toWorld) {
   const pts = [];
   for (const p of [...mergedPoints, ...designPoints]) {
     const n = parseFloat(p.northing), e = parseFloat(p.easting);
-    if (isFinite(n) && isFinite(e)) pts.push(toMerc(n, e));
+    if (isFinite(n) && isFinite(e)) pts.push(toWorld(n, e));
   }
   if (!pts.length) return null;
 
@@ -56,8 +64,8 @@ function buildTransform(mergedPoints, designPoints, projDef) {
     originX,
     originY,
     toPx: p => {
-      const m = toMerc(p.northing, p.easting);
-      return { x: m.x * worldScale - originX, y: m.y * worldScale - originY };
+      const w = toWorld(parseFloat(p.northing), parseFloat(p.easting));
+      return { x: w.x * worldScale - originX, y: w.y * worldScale - originY };
     },
   };
 }
@@ -139,28 +147,34 @@ function makeCanvas(bg) {
 export async function printMap(mergedPoints, designPoints) {
   const county = localStorage.getItem('fieldcut-county') || '';
   const projDef = MN_COUNTIES[county];
-  if (!projDef) {
-    alert('Select a county on the map first — the exhibit uses it to place points on imagery.');
-    return;
+
+  // Without a county the points can't be georeferenced, so imagery is out —
+  // but the plain page only needs their relative geometry. Print it alone.
+  let xf = null;
+  if (projDef) {
+    try {
+      xf = buildTransform(mergedPoints, designPoints, mercatorWorld(projDef));
+    } catch {
+      xf = null;
+    }
+    if (!xf) { alert('Could not convert coordinates with the selected county projection.'); return; }
+  } else {
+    xf = buildTransform(mergedPoints, designPoints, planarWorld);
+    if (!xf) { alert('These points have no usable northing/easting to map.'); return; }
   }
 
-  let xf;
-  try {
-    xf = buildTransform(mergedPoints, designPoints, projDef);
-  } catch {
-    xf = null;
-  }
-  if (!xf) { alert('Could not convert coordinates with the selected county projection.'); return; }
-
-  // Page 1: satellite. Page 2: identical transform on white.
+  // With a county: page 1 satellite, page 2 the same transform on white.
+  // Without one: the white page only.
   const pages = [];
 
-  const sat = makeCanvas('#e8e6e1');
-  try {
-    await drawTiles(sat.ctx, xf);
-  } catch { /* tiles stay grey */ }
-  drawPoints(sat.ctx, mergedPoints, designPoints, xf.toPx);
-  pages.push(sat.canvas.toDataURL('image/jpeg', 0.92));
+  if (projDef) {
+    const sat = makeCanvas('#e8e6e1');
+    try {
+      await drawTiles(sat.ctx, xf);
+    } catch { /* tiles stay grey */ }
+    drawPoints(sat.ctx, mergedPoints, designPoints, xf.toPx);
+    pages.push(sat.canvas.toDataURL('image/jpeg', 0.92));
+  }
 
   const plain = makeCanvas('#ffffff');
   drawPoints(plain.ctx, mergedPoints, designPoints, xf.toPx);
